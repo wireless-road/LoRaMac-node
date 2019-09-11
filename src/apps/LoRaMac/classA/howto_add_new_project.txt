@@ -1,0 +1,87 @@
+1. Create new project in src/apps/LoRaMac/classA folder from SW4STM32
+2. Copy folder of the most similar project in "src/boards" to folder with project name
+3. Add Linked directories to project:
+   PROJECT_LOC\..\..\..\..\boards
+   PROJECT_LOC\..\..\common
+   PROJECT_LOC\..\..\..\..\mac
+   PROJECT_LOC\..\..\..\..\peripherals
+   PROJECT_LOC\..\..\..\..\radio
+   PROJECT_LOC\..\..\..\..\system
+4. Project Properties --> C/C++ General --> Paths and Symbols --> Source Location --> click to "Add Folder" button --> choose <root folder>
+5. Exclude directories from previously added folders:
+   "boards" folder: 
+	exclude all except "mcu" and folder with project name
+	exclude "mcu/saml21"
+	exclude "<project_name>/cmsis/arm-gcc"
+	exclude "<project_name>/cmsis/arm-std"
+	exclude "i2c-board.c", "sx1261mbxbas-board.c", "sx1262mbxcas-board.c", "sx1262mbxdas-board.c", "sx1272mb2das-board.c", "sx1276mb1mas-board.c" files from "<project_name>" directory
+	exclude "EEPROM_Emul", "STM32_USB_Device_Library", "STM32L1xx_HAL_Driver", "STM32L4xx_HAL_Drive" directories from "mcu/stm32"
+	exclude files "stm32l0xx_hal_"+comp_ex.c
+					+comp.c
+					+crc_ex.c
+					+crc.c
+					+cryp_ex.c
+					+cryp.c
+					+dac_ex.c
+					+dac.c
+					+firewall.c
+					+irda.c
+					+iwdg.c
+					+lcd.c
+					+lptim.c
+					+msp_template.c
+					+pcd_ex.c
+					+pcd.c
+					+rng.c
+					+smartcard_ex.c
+					+smbus.c
+			 		+tsc.c
+			 "stm32l0xx_ll_"+adc.c
+					+comp.c
+					+crc.c
+					+crs.c
+					+dac.c
+					+dma.c
+					+exti.c
+					+i2c.c
+					+lptim.c
+					+lpuart.c
+					+pwr.c
+					+rng.c
+					+rtc.c
+					+spi.c
+					+tim.c
+					+utils.c
+   "common" folder:
+	exclude "LmHandlerMsgDisplay.c" file
+   "peripheral" folder:
+	exclude files "mag3110.c", "mma8451.c", "mpl3115.c", "pam7q.c", "sx1509.c", "sx9500.c"
+   "radio" folder:
+	exclude folders "sx126x" and "sx1272"
+6. Edit "boards/<project_name>/board_config.h" file to fit hardware
+7. Select define with your mcu in "boards/<project_name>/cmsis/stm32l0xx.h" file
+8. Add "stm32l071xx.h" file in "src/boards/<project_name>/cmsis" folder
+9. Add following Include paths in Project Properties --> C/C++ Build --> Settings --> Tool Settings --> MCU GCC Compiler --> Includes:
+	"${ProjDirPath}"
+	"${ProjDirPath}/../../common"
+	"${ProjDirPath}/../../common/LmHandler"
+	"${ProjDirPath}/../../common/LmHandler/packages"
+	"${ProjDirPath}/../../../../boards"
+	"${ProjDirPath}/../../../../boards/${ProjName}"
+	"${ProjDirPath}/../../../../boards/${ProjName}/cmsis"
+	"${ProjDirPath}/../../../../boards/mcu/stm32"
+	"${ProjDirPath}/../../../../boards/mcu/stm32/cmsis"
+	"${ProjDirPath}/../../../../boards/mcu/stm32/STM32L0xx_HAL_Driver/Inc"
+	"${ProjDirPath}/../../../../mac"
+	"${ProjDirPath}/../../../../mac/region"
+	"${ProjDirPath}/../../../../peripherals"
+	"${ProjDirPath}/../../../../radio"
+	"${ProjDirPath}/../../../../proto"
+	"${ProjDirPath}/../../../../libraries/nanopb"
+	"${ProjDirPath}/../../../../system"
+	"${ProjDirPath}/../../../../system/crypto"
+10. Add following preporcessor defined symbols to Project Properties --> C/C++ Build --> Settings --> Tool Settings --> MCU GCC Compiler --> Preporcessor:
+	USE_FULL_LL_DRIVER
+	USE_HAL_DRIVER
+	REGION_EU868
+11. Add "-specs=nosys.specs" in Project Properties --> C/C++ Build --> Settings --> Tool Settings --> MCU GCC Linker --> Linker flags field

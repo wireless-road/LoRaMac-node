@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<item value="SX1276MB1LAS" key="org.eclipse.cdt.utils.ui.controls.FileListControl"/>
+	<section name="org.eclipse.cdt.ui.text.hover.CMacroExpansionExploration">
+	</section>
+	<section name="PDOMSearchPage">
+		<item value="false" key="caseSensitive"/>
+		<item value="227191" key="searchFlags"/>
+		<list key="previousPatterns">
+			<item value="DR_4"/>
+			<item value="LMIC_setClockError"/>
+			<item value="RADIO_RESET"/>
+			<item value="HSE_VALUE"/>
+			<item value="MacStatusStrings"/>
+			<item value="restricted"/>
+			<item value="__HAL_SPI_ENABLE"/>
+			<item value="__HAL_SPI_DISABLE"/>
+			<item value="HAL_SPI_MspInit"/>
+			<item value="SpiInit"/>
+			<item value="SX1276MB1LAS"/>
+			<item value="spiinit"/>
+			<item value="24000"/>
+			<item value="HSE"/>
+			<item value="HAL_MspInit"/>
+			<item value="UartMcuPutBuffer"/>
+			<item value="UartPutChar"/>
+			<item value="minTicks"/>
+			<item value="txpower"/>
+			<item value="JoinEui"/>
+			<item value="APPEui"/>
+			<item value="ABP"/>
+			<item value="UartConfig"/>
+			<item value="UartMcuConfig"/>
+			<item value="rate"/>
+			<item value="baud"/>
+			<item value="LORAMAC_REGION_EU868"/>
+			<item value="ACTIVE_REGION"/>
+			<item value="REGION_EU868"/>
+		</list>
+	</section>
+	<section name="RenameInformationPopup">
+	</section>
+	<section name="OptionalMessageDialog.hide.">
+		<item value="0" key="askReindex.detail"/>
+	</section>
+	<section name="CRenameRefactoringInputPage">
+	</section>
+	<section name="completion_proposal_size">
+	</section>
+</section>
