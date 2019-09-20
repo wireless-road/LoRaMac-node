@@ -31,6 +31,8 @@
 #include "Commissioning.h"
 #include "NvmCtxMgmt.h"
 
+#include "nmea_gps.h"
+
 #ifndef ACTIVE_REGION
 
 #warning "No active region defined, LORAMAC_REGION_EU868 will be used as default."
@@ -351,12 +353,31 @@ static void PrepareTxFrame( uint8_t port )
     switch( port )
     {
     case 2:
-        {
-            AppDataSizeBackup = AppDataSize = 1;
-            AppDataBuffer[0] = AppLedStateOn;
-        }
+    	printf("&&&&& port 2\r\n");
+
+    	gps_data_t* gps_data;
+  		if( nmea_is_updated() ) {
+  			gps_data = nmea_getData();
+  			if( (gps_data->fix_indicator == Nmea_Fix_Not_Available) || (gps_data->fix_indicator == Nmea_Fix_No_Data) ) {
+  				printf("==== %d:%d:%d.%d\r\n", gps_data->timestamp_hh, gps_data->timestamp_mm, gps_data->timestamp_ss, gps_data->timestamp_ms);
+  			} else {
+  				uint32_t latitude_dec = (uint32_t)((gps_data->latitude - (uint32_t)gps_data->latitude)*10000);
+  				uint32_t longtude_dec = (uint32_t)((gps_data->longtitude - (uint32_t)gps_data->longtitude)*10000);
+  				printf("==== %d:%d:%d.%d %d.%d %d %d.%d %d %d\r\n", gps_data->timestamp_hh, gps_data->timestamp_mm, gps_data->timestamp_ss, gps_data->timestamp_ms, (uint32_t)(gps_data->latitude), latitude_dec, gps_data->n_s_indicator, (uint32_t)(gps_data->longtitude), longtude_dec, gps_data->n_s_indicator, gps_data->e_w_indicator, gps_data->fix_indicator);
+  			}
+  		}
+
+  		AppDataSize = 3;
+  		AppDataBuffer[0] = 0x37;
+  		AppDataBuffer[1] = 0x35;
+  		AppDataBuffer[2] = 0x33;
+//        {
+//            AppDataSizeBackup = AppDataSize = 1;
+//            AppDataBuffer[0] = AppLedStateOn;
+//        }
         break;
     case 224:
+    	printf("&&&&& port 224\r\n");
         if( ComplianceTest.LinkCheck == true )
         {
             ComplianceTest.LinkCheck = false;
@@ -984,6 +1005,7 @@ int main( void )
         {
             case DEVICE_STATE_RESTORE:
             {
+            	printf("$$ restore\r\n");
                 // Try to restore from NVM and query the mac if possible.
                 if( NvmCtxMgmtRestore( ) == NVMCTXMGMT_STATUS_SUCCESS )
                 {
@@ -1071,6 +1093,7 @@ int main( void )
 
             case DEVICE_STATE_START:
             {
+            	printf("$$ start\r\n");
                 TimerInit( &TxNextPacketTimer, OnTxNextPacketTimerEvent );
 
                 TimerInit( &Led1Timer, OnLed1TimerEvent );
@@ -1115,6 +1138,7 @@ int main( void )
             }
             case DEVICE_STATE_JOIN:
             {
+            	printf("$$ join\r\n");
                 mibReq.Type = MIB_DEV_EUI;
                 LoRaMacMibGetRequestConfirm( &mibReq );
                 printf( "DevEui      : %02X", mibReq.Param.DevEui[0] );
@@ -1166,6 +1190,7 @@ int main( void )
             }
             case DEVICE_STATE_SEND:
             {
+            	printf("$$ send\r\n");
                 if( NextTx == true )
                 {
                     PrepareTxFrame( AppPort );
@@ -1177,7 +1202,9 @@ int main( void )
             }
             case DEVICE_STATE_CYCLE:
             {
-                DeviceState = DEVICE_STATE_SLEEP;
+            	printf("$$ al: cycle\r\n");
+
+          		DeviceState = DEVICE_STATE_SLEEP;
                 if( ComplianceTest.Running == true )
                 {
                     // Schedule next packet transmission
@@ -1217,6 +1244,7 @@ int main( void )
             }
             default:
             {
+            	printf("$$ def\r\n");
                 DeviceState = DEVICE_STATE_START;
                 break;
             }
