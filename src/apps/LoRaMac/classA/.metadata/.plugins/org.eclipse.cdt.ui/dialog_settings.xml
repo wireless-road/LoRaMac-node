@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<item value="SX1276MB1LAS" key="org.eclipse.cdt.utils.ui.controls.FileListControl"/>
+	<item value="Default C header template" key="LastUsedHeaderTemplate"/>
 	<section name="org.eclipse.cdt.ui.text.hover.CMacroExpansionExploration">
 	</section>
 	<section name="PDOMSearchPage">
 		<item value="false" key="caseSensitive"/>
 		<item value="227191" key="searchFlags"/>
 		<list key="previousPatterns">
+			<item value="sleep"/>
+			<item value="GpioInit"/>
+			<item value="GpioMcuInit"/>
+			<item value="JoinNetwork"/>
+			<item value="DeviceState"/>
+			<item value="LORAMAC_STATUS_NO_CHANNEL_FOUND"/>
+			<item value="LORAMAC_STATUS_DUTYCYCLE_RESTRICTED"/>
+			<item value="cyclerestricted"/>
 			<item value="DR_4"/>
 			<item value="LMIC_setClockError"/>
 			<item value="RADIO_RESET"/>

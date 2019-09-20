@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;m2m-76-gps/peripherals/nmea_gps&apos; to &apos;nmea_gps.c&apos;" description="Rename resource &apos;nmea_gps&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="peripherals/nmea_gps" name="nmea_gps.c" stamp="1568831510766" updateReferences="true"/>
+</session>

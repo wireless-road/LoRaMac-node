@@ -2,20 +2,20 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="ADR" key="selection"/>
+		<item value="port 2" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
-			<item value="adr"/>
-			<item value="Cl"/>
-			<item value="C!"/>
-			<item value="US915"/>
-			<item value="ACTIVE_REGION"/>
-			<item value="LoRaMacInitialization"/>
-			<item value="hh"/>
-			<item value="9600"/>
+			<item value="port 2"/>
+			<item value="nmea"/>
+			<item value="PrepareTxFrame"/>
+			<item value="LL_us"/>
+			<item value="LL"/>
+			<item value="gps_data_t"/>
+			<item value="nmea_parser"/>
+			<item value="RXNE"/>
 		</list>
 		<list key="replacehistory">
 		</list>
