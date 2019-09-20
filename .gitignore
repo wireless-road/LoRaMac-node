@@ -26,3 +26,4 @@ tmp/
 .vscode/launch.json
 .cmaketools.json
 ipch/
+src/apps/LoRaMac/classA/.metadata/.plugins/org.eclipse.core.resources/.history/
