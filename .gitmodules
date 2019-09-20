@@ -1,0 +1,3 @@
+[submodule "src/lora-protobuf"]
+	path = src/lora-protobuf
+	url = git@git.m2m-tele.com:Almaz/lora-protobuf.git
