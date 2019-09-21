@@ -33,6 +33,10 @@
 
 #include "nmea_gps.h"
 
+#include <pb_encode.h>
+#include <pb_decode.h>
+#include <m2m-telecom.pb.h>
+
 #ifndef ACTIVE_REGION
 
 #warning "No active region defined, LORAMAC_REGION_EU868 will be used as default."
@@ -291,6 +295,100 @@ const char* EventInfoStatusStrings[] =
     "Beacon not found"               // LORAMAC_EVENT_INFO_STATUS_BEACON_NOT_FOUND
 };
 
+
+uint8_t buffer[128];
+size_t message_length;
+
+int proto_pack_payload(gps_data_t* gps_data)
+{
+    // This is the buffer where we will store our message.
+    bool status;
+
+    memset(buffer, 0, sizeof(buffer));
+    // Encode our message
+
+    SimpleMessage message = SimpleMessage_init_default;
+    message.device_part_number = SimpleMessage_DevicePartNumber_WR_76_GPS;
+    message.interface_type = SimpleMessage_InterfaceType_LORA;
+    message.has_settings_common = false;
+
+    message.has_params_common = false;
+    message.has_params_common = false;
+	message.has_settings_specific = false;
+	message.has_settings_common = false;
+
+    if( (gps_data->fix_indicator == Nmea_Fix_Not_Available) || (gps_data->fix_indicator == Nmea_Fix_No_Data) ) {
+		printf("==== %d:%d:%d.%d\r\n", gps_data->timestamp_hh, gps_data->timestamp_mm, gps_data->timestamp_ss, gps_data->timestamp_ms);
+
+	    message.has_params_common = true;
+	    message.params_common.has_timestamp_hh = true;
+	    message.params_common.timestamp_hh = gps_data->timestamp_hh;
+	    message.params_common.has_timestamp_mm = true;
+	    message.params_common.timestamp_mm = gps_data->timestamp_mm;
+	    message.params_common.has_timestamp_ss = true;
+	    message.params_common.timestamp_ss = gps_data->timestamp_ss;
+	    message.params_common.has_timestamp_ms = false;
+
+	} else {
+		uint32_t latitude_dec = (uint32_t)((gps_data->latitude - (uint32_t)gps_data->latitude)*10000);
+		uint32_t longtude_dec = (uint32_t)((gps_data->longtitude - (uint32_t)gps_data->longtitude)*10000);
+		printf("==== %d:%d:%d.%d %d.%d %d %d.%d %d %d\r\n", gps_data->timestamp_hh, gps_data->timestamp_mm, gps_data->timestamp_ss, gps_data->timestamp_ms, (uint32_t)(gps_data->latitude), latitude_dec, gps_data->n_s_indicator, (uint32_t)(gps_data->longtitude), longtude_dec, gps_data->n_s_indicator, gps_data->e_w_indicator, gps_data->fix_indicator);
+
+	    message.has_params_common = true;
+	    message.params_common.has_timestamp_hh = true;
+	    message.params_common.timestamp_hh = (uint32_t)gps_data->timestamp_hh;
+	    message.params_common.has_timestamp_mm = true;
+	    message.params_common.timestamp_mm = gps_data->timestamp_mm;
+	    message.params_common.has_timestamp_ss = true;
+	    message.params_common.timestamp_ss = gps_data->timestamp_ss;
+	    message.params_common.has_timestamp_ms = false;
+
+	    message.has_params_specific = true;
+	    message.params_specific.has_params_wr_76_gps = true;
+	    message.params_specific.params_wr_76_gps.has_latitude = true;
+	    message.params_specific.params_wr_76_gps.latitude = gps_data->latitude;
+	    message.params_specific.params_wr_76_gps.has_longtitude = true;
+	    message.params_specific.params_wr_76_gps.longtitude = gps_data->longtitude;
+
+	}
+
+    // Create a stream that will write to our buffer.
+    pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+
+    // Now we are ready to encode the message!
+    status = pb_encode(&stream, SimpleMessage_fields, &message);
+    message_length = stream.bytes_written;
+
+    // Then just check for any errors..
+    if (!status)
+    {
+    	printf("err1\r\n");
+        return 1;
+    }
+
+/*
+    // Allocate space for the decoded message.
+    SimpleMessage message2 = SimpleMessage_init_zero;
+
+    // Create a stream that reads from the buffer.
+    pb_istream_t stream2 = pb_istream_from_buffer(buffer, message_length);
+
+    // Now we are ready to decode the message.
+    status = pb_decode(&stream2, SimpleMessage_fields, &message2);
+
+    // Check for errors...
+    if (!status)
+    {
+    	printf("protobuf err2\r\n");
+        return 1;
+    }
+
+    // Print the data contained in the message.
+    printf("protbuf ok\r\n");
+*/
+    return 0;
+}
+
 /*!
  * Prints the provided buffer in HEX
  * 
@@ -355,9 +453,12 @@ static void PrepareTxFrame( uint8_t port )
     case 2:
     	printf("&&&&& port 2\r\n");
 
+
     	gps_data_t* gps_data;
   		if( nmea_is_updated() ) {
   			gps_data = nmea_getData();
+  	    	proto_pack_payload(gps_data);
+/*
   			if( (gps_data->fix_indicator == Nmea_Fix_Not_Available) || (gps_data->fix_indicator == Nmea_Fix_No_Data) ) {
   				printf("==== %d:%d:%d.%d\r\n", gps_data->timestamp_hh, gps_data->timestamp_mm, gps_data->timestamp_ss, gps_data->timestamp_ms);
   			} else {
@@ -365,12 +466,13 @@ static void PrepareTxFrame( uint8_t port )
   				uint32_t longtude_dec = (uint32_t)((gps_data->longtitude - (uint32_t)gps_data->longtitude)*10000);
   				printf("==== %d:%d:%d.%d %d.%d %d %d.%d %d %d\r\n", gps_data->timestamp_hh, gps_data->timestamp_mm, gps_data->timestamp_ss, gps_data->timestamp_ms, (uint32_t)(gps_data->latitude), latitude_dec, gps_data->n_s_indicator, (uint32_t)(gps_data->longtitude), longtude_dec, gps_data->n_s_indicator, gps_data->e_w_indicator, gps_data->fix_indicator);
   			}
+*/
   		}
 
-  		AppDataSize = 3;
-  		AppDataBuffer[0] = 0x37;
-  		AppDataBuffer[1] = 0x35;
-  		AppDataBuffer[2] = 0x33;
+        AppDataSizeBackup = AppDataSize = message_length;
+        memset(AppDataBuffer, 0, sizeof(AppDataBuffer));
+        memcpy(AppDataBuffer, buffer, message_length);
+
 //        {
 //            AppDataSizeBackup = AppDataSize = 1;
 //            AppDataBuffer[0] = AppLedStateOn;
