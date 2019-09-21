@@ -299,7 +299,7 @@ const char* EventInfoStatusStrings[] =
 uint8_t buffer[128];
 size_t message_length;
 
-int proto_test()
+int proto_pack_payload(gps_data_t* gps_data)
 {
     // This is the buffer where we will store our message.
     bool status;
@@ -307,46 +307,53 @@ int proto_test()
     memset(buffer, 0, sizeof(buffer));
     // Encode our message
 
-    // Allocate space on the stack to store the message data.
-    //
-    // Nanopb generates simple struct definitions for all the messages.
-    // - check out the contents of simple.pb.h!
-    // It is a good idea to always initialize your structures
-    // so that you do not have garbage data from RAM in there.
-//    SimpleMessage message = SimpleMessage_seven_seven;
     SimpleMessage message = SimpleMessage_init_default;
-    message.device_type = SimpleMessage_DeviceType_ELECTRIC_METER;
+    message.device_part_number = SimpleMessage_DevicePartNumber_WR_76_GPS;
     message.interface_type = SimpleMessage_InterfaceType_LORA;
     message.has_settings_common = false;
-//    message.settings_common.has_def_multiplier = true;
-//    message.settings_common.def_multiplier = 100;
-//    message.settings_common.has_def_divider = true;
-//    message.settings_common.def_divider = 1;
- //   message.settings_common.has_def_shift = false;
 
-    message.has_params_specific = true;
-    message.params_specific.has_params_electric_meter = true;
-    message.params_specific.params_electric_meter.has_energy_active_forward = true;
-    message.params_specific.params_electric_meter.energy_active_forward = 7777;
-    message.params_specific.params_electric_meter.has_energy_active_backward = true;
-    message.params_specific.params_electric_meter.energy_active_backward = 777;
-    message.params_specific.params_electric_meter.has_energy_reactive_forward = true;
-    message.params_specific.params_electric_meter.energy_reactive_forward = 77;
-    message.params_specific.params_electric_meter.has_energy_reactive_backward = true;
-	message.params_specific.params_electric_meter.energy_reactive_backward = 7;
+    message.has_params_common = false;
+    message.has_params_common = false;
+	message.has_settings_specific = false;
+	message.has_settings_common = false;
 
-	message.has_settings_specific = true;
-	message.settings_specific.has_settings_electric_meter = true;
-	message.settings_specific.settings_electric_meter.has_multiplier = true;
-	message.settings_specific.settings_electric_meter.multiplier = 100;
-	message.settings_specific.settings_electric_meter.has_divider = true;
-	message.settings_specific.settings_electric_meter.divider = 1;
-	message.settings_specific.settings_electric_meter.has_shift = false;
+    if( (gps_data->fix_indicator == Nmea_Fix_Not_Available) || (gps_data->fix_indicator == Nmea_Fix_No_Data) ) {
+		printf("==== %d:%d:%d.%d\r\n", gps_data->timestamp_hh, gps_data->timestamp_mm, gps_data->timestamp_ss, gps_data->timestamp_ms);
+
+	    message.has_params_common = true;
+	    message.params_common.has_timestamp_hh = true;
+	    message.params_common.timestamp_hh = gps_data->timestamp_hh;
+	    message.params_common.has_timestamp_mm = true;
+	    message.params_common.timestamp_mm = gps_data->timestamp_mm;
+	    message.params_common.has_timestamp_ss = true;
+	    message.params_common.timestamp_ss = gps_data->timestamp_ss;
+	    message.params_common.has_timestamp_ms = false;
+
+	} else {
+		uint32_t latitude_dec = (uint32_t)((gps_data->latitude - (uint32_t)gps_data->latitude)*10000);
+		uint32_t longtude_dec = (uint32_t)((gps_data->longtitude - (uint32_t)gps_data->longtitude)*10000);
+		printf("==== %d:%d:%d.%d %d.%d %d %d.%d %d %d\r\n", gps_data->timestamp_hh, gps_data->timestamp_mm, gps_data->timestamp_ss, gps_data->timestamp_ms, (uint32_t)(gps_data->latitude), latitude_dec, gps_data->n_s_indicator, (uint32_t)(gps_data->longtitude), longtude_dec, gps_data->n_s_indicator, gps_data->e_w_indicator, gps_data->fix_indicator);
+
+	    message.has_params_common = true;
+	    message.params_common.has_timestamp_hh = true;
+	    message.params_common.timestamp_hh = (uint32_t)gps_data->timestamp_hh;
+	    message.params_common.has_timestamp_mm = true;
+	    message.params_common.timestamp_mm = gps_data->timestamp_mm;
+	    message.params_common.has_timestamp_ss = true;
+	    message.params_common.timestamp_ss = gps_data->timestamp_ss;
+	    message.params_common.has_timestamp_ms = false;
+
+	    message.has_params_specific = true;
+	    message.params_specific.has_params_wr_76_gps = true;
+	    message.params_specific.params_wr_76_gps.has_latitude = true;
+	    message.params_specific.params_wr_76_gps.latitude = gps_data->latitude;
+	    message.params_specific.params_wr_76_gps.has_longtitude = true;
+	    message.params_specific.params_wr_76_gps.longtitude = gps_data->longtitude;
+
+	}
+
     // Create a stream that will write to our buffer.
     pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
-
-    // Fill in the lucky number
-//    message.lucky_number1 = 13;
 
     // Now we are ready to encode the message!
     status = pb_encode(&stream, SimpleMessage_fields, &message);
@@ -359,13 +366,7 @@ int proto_test()
         return 1;
     }
 
-    // Now we could transmit the message over network, store it in a file or
-    // wrap it to a pigeon's leg.
-    //
-//    BoardSendString_(buffer, message_length);
-
-    // But because we are lazy, we will just decode it immediately.
-
+/*
     // Allocate space for the decoded message.
     SimpleMessage message2 = SimpleMessage_init_zero;
 
@@ -384,7 +385,7 @@ int proto_test()
 
     // Print the data contained in the message.
     printf("protbuf ok\r\n");
-
+*/
     return 0;
 }
 
@@ -452,11 +453,12 @@ static void PrepareTxFrame( uint8_t port )
     case 2:
     	printf("&&&&& port 2\r\n");
 
-    	proto_test();
 
     	gps_data_t* gps_data;
   		if( nmea_is_updated() ) {
   			gps_data = nmea_getData();
+  	    	proto_pack_payload(gps_data);
+/*
   			if( (gps_data->fix_indicator == Nmea_Fix_Not_Available) || (gps_data->fix_indicator == Nmea_Fix_No_Data) ) {
   				printf("==== %d:%d:%d.%d\r\n", gps_data->timestamp_hh, gps_data->timestamp_mm, gps_data->timestamp_ss, gps_data->timestamp_ms);
   			} else {
@@ -464,6 +466,7 @@ static void PrepareTxFrame( uint8_t port )
   				uint32_t longtude_dec = (uint32_t)((gps_data->longtitude - (uint32_t)gps_data->longtitude)*10000);
   				printf("==== %d:%d:%d.%d %d.%d %d %d.%d %d %d\r\n", gps_data->timestamp_hh, gps_data->timestamp_mm, gps_data->timestamp_ss, gps_data->timestamp_ms, (uint32_t)(gps_data->latitude), latitude_dec, gps_data->n_s_indicator, (uint32_t)(gps_data->longtitude), longtude_dec, gps_data->n_s_indicator, gps_data->e_w_indicator, gps_data->fix_indicator);
   			}
+*/
   		}
 
         AppDataSizeBackup = AppDataSize = message_length;
