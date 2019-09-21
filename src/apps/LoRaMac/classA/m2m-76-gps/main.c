@@ -355,14 +355,14 @@ int proto_test()
     // Then just check for any errors..
     if (!status)
     {
-    	Board_Usart1_SendString("err1\r\n", 6);
+    	printf("err1\r\n");
         return 1;
     }
 
     // Now we could transmit the message over network, store it in a file or
     // wrap it to a pigeon's leg.
     //
-    BoardSendString_(buffer, message_length);
+//    BoardSendString_(buffer, message_length);
 
     // But because we are lazy, we will just decode it immediately.
 
@@ -378,12 +378,12 @@ int proto_test()
     // Check for errors...
     if (!status)
     {
-    	Board_Usart1_SendString("err2\r\n", 6);
+    	printf("protobuf err2\r\n");
         return 1;
     }
 
     // Print the data contained in the message.
-    Board_Usart1_SendString("ok\r\n", 4);
+    printf("protbuf ok\r\n");
 
     return 0;
 }
@@ -451,6 +451,8 @@ static void PrepareTxFrame( uint8_t port )
     {
     case 2:
     	printf("&&&&& port 2\r\n");
+
+    	proto_test();
 
     	gps_data_t* gps_data;
   		if( nmea_is_updated() ) {
