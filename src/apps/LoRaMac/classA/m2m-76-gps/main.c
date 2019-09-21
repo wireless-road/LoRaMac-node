@@ -33,6 +33,10 @@
 
 #include "nmea_gps.h"
 
+#include <pb_encode.h>
+#include <pb_decode.h>
+#include <m2m-telecom.pb.h>
+
 #ifndef ACTIVE_REGION
 
 #warning "No active region defined, LORAMAC_REGION_EU868 will be used as default."
@@ -291,6 +295,99 @@ const char* EventInfoStatusStrings[] =
     "Beacon not found"               // LORAMAC_EVENT_INFO_STATUS_BEACON_NOT_FOUND
 };
 
+
+uint8_t buffer[128];
+size_t message_length;
+
+int proto_test()
+{
+    // This is the buffer where we will store our message.
+    bool status;
+
+    memset(buffer, 0, sizeof(buffer));
+    // Encode our message
+
+    // Allocate space on the stack to store the message data.
+    //
+    // Nanopb generates simple struct definitions for all the messages.
+    // - check out the contents of simple.pb.h!
+    // It is a good idea to always initialize your structures
+    // so that you do not have garbage data from RAM in there.
+//    SimpleMessage message = SimpleMessage_seven_seven;
+    SimpleMessage message = SimpleMessage_init_default;
+    message.device_type = SimpleMessage_DeviceType_ELECTRIC_METER;
+    message.interface_type = SimpleMessage_InterfaceType_LORA;
+    message.has_settings_common = false;
+//    message.settings_common.has_def_multiplier = true;
+//    message.settings_common.def_multiplier = 100;
+//    message.settings_common.has_def_divider = true;
+//    message.settings_common.def_divider = 1;
+ //   message.settings_common.has_def_shift = false;
+
+    message.has_params_specific = true;
+    message.params_specific.has_params_electric_meter = true;
+    message.params_specific.params_electric_meter.has_energy_active_forward = true;
+    message.params_specific.params_electric_meter.energy_active_forward = 7777;
+    message.params_specific.params_electric_meter.has_energy_active_backward = true;
+    message.params_specific.params_electric_meter.energy_active_backward = 777;
+    message.params_specific.params_electric_meter.has_energy_reactive_forward = true;
+    message.params_specific.params_electric_meter.energy_reactive_forward = 77;
+    message.params_specific.params_electric_meter.has_energy_reactive_backward = true;
+	message.params_specific.params_electric_meter.energy_reactive_backward = 7;
+
+	message.has_settings_specific = true;
+	message.settings_specific.has_settings_electric_meter = true;
+	message.settings_specific.settings_electric_meter.has_multiplier = true;
+	message.settings_specific.settings_electric_meter.multiplier = 100;
+	message.settings_specific.settings_electric_meter.has_divider = true;
+	message.settings_specific.settings_electric_meter.divider = 1;
+	message.settings_specific.settings_electric_meter.has_shift = false;
+    // Create a stream that will write to our buffer.
+    pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+
+    // Fill in the lucky number
+//    message.lucky_number1 = 13;
+
+    // Now we are ready to encode the message!
+    status = pb_encode(&stream, SimpleMessage_fields, &message);
+    message_length = stream.bytes_written;
+
+    // Then just check for any errors..
+    if (!status)
+    {
+    	Board_Usart1_SendString("err1\r\n", 6);
+        return 1;
+    }
+
+    // Now we could transmit the message over network, store it in a file or
+    // wrap it to a pigeon's leg.
+    //
+    BoardSendString_(buffer, message_length);
+
+    // But because we are lazy, we will just decode it immediately.
+
+    // Allocate space for the decoded message.
+    SimpleMessage message2 = SimpleMessage_init_zero;
+
+    // Create a stream that reads from the buffer.
+    pb_istream_t stream2 = pb_istream_from_buffer(buffer, message_length);
+
+    // Now we are ready to decode the message.
+    status = pb_decode(&stream2, SimpleMessage_fields, &message2);
+
+    // Check for errors...
+    if (!status)
+    {
+    	Board_Usart1_SendString("err2\r\n", 6);
+        return 1;
+    }
+
+    // Print the data contained in the message.
+    Board_Usart1_SendString("ok\r\n", 4);
+
+    return 0;
+}
+
 /*!
  * Prints the provided buffer in HEX
  * 
@@ -367,10 +464,10 @@ static void PrepareTxFrame( uint8_t port )
   			}
   		}
 
-  		AppDataSize = 3;
-  		AppDataBuffer[0] = 0x37;
-  		AppDataBuffer[1] = 0x35;
-  		AppDataBuffer[2] = 0x33;
+        AppDataSizeBackup = AppDataSize = message_length;
+        memset(AppDataBuffer, 0, sizeof(AppDataBuffer));
+        memcpy(AppDataBuffer, buffer, message_length);
+
 //        {
 //            AppDataSizeBackup = AppDataSize = 1;
 //            AppDataBuffer[0] = AppLedStateOn;

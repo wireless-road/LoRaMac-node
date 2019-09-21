@@ -50,7 +50,8 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../peripherals&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../radio&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../proto&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../libraries/nanopb&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../lora-protobuf&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../lora-protobuf/generator&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../system&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../system/crypto&quot;"/>
 								</option>

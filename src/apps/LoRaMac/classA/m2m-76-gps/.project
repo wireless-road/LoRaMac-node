@@ -37,6 +37,11 @@
 			<locationURI>PARENT-2-PROJECT_LOC/common</locationURI>
 		</link>
 		<link>
+			<name>generator</name>
+			<type>2</type>
+			<locationURI>PARENT-4-PROJECT_LOC/lora-protobuf/generator</locationURI>
+		</link>
+		<link>
 			<name>mac</name>
 			<type>2</type>
 			<locationURI>PARENT-4-PROJECT_LOC/mac</locationURI>
