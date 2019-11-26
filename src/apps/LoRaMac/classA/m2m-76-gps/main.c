@@ -46,6 +46,10 @@
 
 #endif
 
+#ifdef PRODUCTION
+#define printf(fmt, ...) (0)
+#endif
+
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */

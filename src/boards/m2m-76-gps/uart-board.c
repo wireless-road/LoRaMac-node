@@ -41,6 +41,7 @@ uint8_t TxData = 0;
 
 extern Uart_t Uart1;
 
+#ifndef PRODUCTION
 void UartMcuInit( Uart_t *obj, UartId_t uartId, PinNames tx, PinNames rx )
 {
     obj->UartId = uartId;
@@ -61,6 +62,7 @@ void UartMcuInit( Uart_t *obj, UartId_t uartId, PinNames tx, PinNames rx )
         GpioInit( &obj->Rx, rx, PIN_ALTERNATE_FCT, PIN_PUSH_PULL, PIN_PULL_UP, GPIO_AF4_USART1 );
     }
 }
+#endif
 
 #include <nmea_gps.h>
 
@@ -148,7 +150,7 @@ void USART2_IRQHandler(void)
 	}
 }
 
-
+#ifndef PRODUCTION
 void UartMcuConfig( Uart_t *obj, UartMode_t mode, uint32_t baudrate, WordLength_t wordLength, StopBits_t stopBits, Parity_t parity, FlowCtrl_t flowCtrl )
 {
     if( obj->UartId == UART_USB_CDC )
@@ -431,3 +433,4 @@ void USART1_IRQHandler( void )
 {
     HAL_UART_IRQHandler( &UartHandle );
 }
+#endif
