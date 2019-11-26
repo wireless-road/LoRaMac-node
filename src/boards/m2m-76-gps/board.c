@@ -152,9 +152,10 @@ void BoardInitMcu( void )
         FifoInit( &Uart1.FifoTx, Uart1TxBuffer, UART1_FIFO_TX_SIZE );
         FifoInit( &Uart1.FifoRx, Uart1RxBuffer, UART1_FIFO_RX_SIZE );
         // Configure your terminal for 8 Bits data (7 data bit + 1 parity bit), no parity and no flow ctrl
+#ifndef PRODUCTION
         UartInit( &Uart1, UART_1, UART_TX, UART_RX );
         UartConfig( &Uart1, RX_TX, 256000, UART_8_BIT, UART_1_STOP_BIT, NO_PARITY, NO_FLOW_CTRL );
-
+#endif
         Board_LL_Usart2_Init();
         RtcInit( );
 
@@ -440,7 +441,7 @@ void BoardLowPowerHandler( void )
 }
 
 #if !defined ( __CC_ARM )
-
+#ifndef PRODUCTION
 /*
  * Function to be used by stdout for printf etc
  */
@@ -461,7 +462,7 @@ int _read( int fd, const void *buf, size_t count )
     while( UartPutBuffer( &Uart1, ( uint8_t* )buf, ( uint16_t )bytesRead ) != 0 ){ };
     return bytesRead;
 }
-
+#endif
 #else
 
 // Keil compiler

@@ -33,6 +33,7 @@
 									<listOptionValue builtIn="false" value="STM32L0"/>
 									<listOptionValue builtIn="false" value="STM32L071CBTx"/>
 									<listOptionValue builtIn="false" value="DEBUG"/>
+									<listOptionValue builtIn="false" value="PRODUCTION"/>
 								</option>
 								<option id="gnu.c.compiler.option.include.paths.1376039128" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}&quot;"/>
