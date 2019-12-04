@@ -30,3 +30,6 @@ src/apps/LoRaMac/classA/.metadata/.plugins/org.eclipse.core.resources/.history/
 src/apps/LoRaMac/classA/.metadata/.plugins/org.eclipse.core.resources/.projects/m2m-76-gps/.indexes/
 *.pdom
 *.snap
+*.tree
+*.prefs
+*.markers
