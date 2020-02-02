@@ -33,4 +33,3 @@ src/apps/LoRaMac/classA/.metadata/.plugins/org.eclipse.core.resources/.projects/
 *.tree
 *.prefs
 *.markers
-*.index
