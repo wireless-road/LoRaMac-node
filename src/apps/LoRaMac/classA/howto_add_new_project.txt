@@ -1,4 +1,4 @@
-1. Create new project in src/apps/LoRaMac/classA folder from SW4STM32
+1. Create new project (File --> New --> C Project, Executable --> Empty Project --> Ac6 STM32 MCU GCC) in src/apps/LoRaMac/classA folder from SW4STM32
 2. Copy folder of the most similar project in "src/boards" to folder with project name
 3. Add Linked directories to project:
    PROJECT_LOC\..\..\..\..\boards
@@ -58,9 +58,10 @@
 	exclude files "mag3110.c", "mma8451.c", "mpl3115.c", "pam7q.c", "sx1509.c", "sx9500.c"
    "radio" folder:
 	exclude folders "sx126x" and "sx1272"
+6_0. Add "SX1276MB1LAS" definition to project's properties (C/C++ Build --> Settings --> Tool Settings --> MCU GCC Compiler --> Preprocessor --> Defined symbols
 6. Edit "boards/<project_name>/board_config.h" file to fit hardware
 7. Select define with your mcu in "boards/<project_name>/cmsis/stm32l0xx.h" file
-8. Add "stm32l071xx.h" file in "src/boards/<project_name>/cmsis" folder
+8. Add ".h" file of your mcu in "src/boards/<project_name>/cmsis" folder (can be found here: https://github.com/olikraus/u8g2/tree/master/sys/arm/stm32l031x6/stm32l0xx/inc)
 9. Add following Include paths in Project Properties --> C/C++ Build --> Settings --> Tool Settings --> MCU GCC Compiler --> Includes:
 	"${ProjDirPath}"
 	"${ProjDirPath}/../../common"
@@ -78,10 +79,13 @@
 	"${ProjDirPath}/../../../../radio"
 	"${ProjDirPath}/../../../../proto"
 	"${ProjDirPath}/../../../../libraries/nanopb"
+        "${ProjDirPath}/../../../../lora-protobuf"
+        "${ProjDirPath}/../../../../lora-protobuf/generator"
 	"${ProjDirPath}/../../../../system"
 	"${ProjDirPath}/../../../../system/crypto"
 10. Add following preporcessor defined symbols to Project Properties --> C/C++ Build --> Settings --> Tool Settings --> MCU GCC Compiler --> Preporcessor:
 	USE_FULL_LL_DRIVER
 	USE_HAL_DRIVER
 	REGION_EU868
-11. Add "-specs=nosys.specs" in Project Properties --> C/C++ Build --> Settings --> Tool Settings --> MCU GCC Linker --> Linker flags field
+11. Add "-specs=nosys.specs" in Project Properties --> C/C++ Build --> Settings --> Tool Settings --> MCU GCC Linker --> Miscellaneonus --> Linker flags field
+12. Copy "Comissioning.h" file from any other existing project to src/apps/LoRaMac/classA/<project_name> directory

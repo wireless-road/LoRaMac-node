@@ -2,20 +2,20 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="proto_pack_payload" key="selection"/>
+		<item value="Board_LL_Usart2_Init" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
-			<item value="proto_pack_payload"/>
-			<item value="proto"/>
-			<item value="UartMcuPutBuffer"/>
-			<item value="_read"/>
-			<item value="34"/>
-			<item value="34, 39"/>
-			<item value="#if"/>
-			<item value="printf"/>
+			<item value="Board_LL_Usart2_Init"/>
+			<item value="rf_en"/>
+			<item value="delay"/>
+			<item value="main"/>
+			<item value="led"/>
+			<item value="led2"/>
+			<item value="nmea"/>
+			<item value="0x20000000"/>
 		</list>
 		<list key="replacehistory">
 		</list>
@@ -24,7 +24,7 @@
 		<item value="284" key="DIALOG_WIDTH"/>
 		<item value="1|Segoe UI|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI" key="DIALOG_FONT_NAME"/>
 		<item value="370" key="DIALOG_HEIGHT"/>
-		<item value="1466" key="DIALOG_X_ORIGIN"/>
-		<item value="678" key="DIALOG_Y_ORIGIN"/>
+		<item value="1153" key="DIALOG_X_ORIGIN"/>
+		<item value="269" key="DIALOG_Y_ORIGIN"/>
 	</section>
 </section>
