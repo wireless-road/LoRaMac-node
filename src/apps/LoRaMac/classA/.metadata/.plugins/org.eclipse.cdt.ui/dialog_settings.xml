@@ -8,6 +8,7 @@
 		<item value="false" key="caseSensitive"/>
 		<item value="227191" key="searchFlags"/>
 		<list key="previousPatterns">
+			<item value="led"/>
 			<item value="UartPutBuffer"/>
 			<item value="sleep"/>
 			<item value="GpioInit"/>
@@ -52,6 +53,7 @@
 	</section>
 	<section name="OptionalMessageDialog.hide.">
 		<item value="0" key="askReindex.detail"/>
+		<item value="true" key="askReindex"/>
 	</section>
 	<section name="CRenameRefactoringInputPage">
 	</section>
