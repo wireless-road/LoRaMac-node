@@ -88,4 +88,4 @@
 	USE_HAL_DRIVER
 	REGION_EU868
 11. Add "-specs=nosys.specs" in Project Properties --> C/C++ Build --> Settings --> Tool Settings --> MCU GCC Linker --> Miscellaneonus --> Linker flags field
-12. Copy "Comissioning.h" file from any other existing project to src/apps/LoRaMac/classA/<project_name> directory
+12. Copy "Comissioning.h" and "main.c" file from any other existing project to src/apps/LoRaMac/classA/<project_name> directory

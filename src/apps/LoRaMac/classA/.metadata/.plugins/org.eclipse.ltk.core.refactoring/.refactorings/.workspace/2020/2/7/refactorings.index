@@ -1,0 +1,4 @@
+1581364383712	Delete resource 'm2m-76-electricity-meter'
+1581445358185	Delete resource 'm2m-76-electricity-meter/peripherals/nmea_gps.c'
+1581445360849	Delete resource 'm2m-76-electricity-meter/peripherals/nmea_gps.h'
+1581445362075	Delete resource 'm2m-76-electricity-meter/peripherals/nmea_gps_private.h'
