@@ -30,12 +30,13 @@
 #include "LoRaMac.h"
 #include "Commissioning.h"
 #include "NvmCtxMgmt.h"
+#include "ade7953.h"
 
 //#include "nmea_gps.h"
 
-#include <pb_encode.h>
-#include <pb_decode.h>
-#include <m2m-telecom.pb.h>
+//#include <pb_encode.h>
+//#include <pb_decode.h>
+//#include <m2m-telecom.pb.h>
 
 #ifndef ACTIVE_REGION
 
@@ -49,6 +50,7 @@
 #ifdef PRODUCTION
 #define printf(fmt, ...) (0)
 #endif
+
 
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
@@ -1076,6 +1078,10 @@ int main( void )
     DeviceState = DEVICE_STATE_RESTORE;
 
 //    printf( "###### ===== ClassA demo application v1.0.RC1 ==== ######\r\n\r\n" );
+
+    ADE7953Reset();
+    ADE7953Init();
+
 
     while( 1 )
     {
