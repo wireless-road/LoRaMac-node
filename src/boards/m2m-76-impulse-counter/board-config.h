@@ -46,13 +46,15 @@
  * Board MCU pins definitions
  */
 //#if defined( ADE7953 )
-#define ADE7953_RESET                               PA_9
-#define ADE7953_MOSI                                PB_15
-#define ADE7953_MISO                                PB_14
-#define ADE7953_SCLK                                PB_13
-#define ADE7953_NSS1                                PA_8
-#define ADE7953_NSS2                                PB_12
+//#define ADE7953_RESET                               PA_9
+//#define ADE7953_MOSI                                PB_15
+//#define ADE7953_MISO                                PB_14
+//#define ADE7953_SCLK                                PB_13
+//#define ADE7953_NSS1                                PA_8
+//#define ADE7953_NSS2                                PB_12
 //#endif
+
+#define RF_EN                                       PB_11
 
 #define RADIO_RESET                                 PB_9//PB_13
 
@@ -83,11 +85,11 @@
 #define RADIO_NSS                                   PA_4
 
 #define RADIO_DIO_0                                 PB_8
-#define RADIO_DIO_1                                 PB_7
-#define RADIO_DIO_2                                 PB_6
-#define RADIO_DIO_3                                 PB_5
-#define RADIO_DIO_4                                 PB_4
-#define RADIO_DIO_5                                 PB_3
+#define RADIO_DIO_1                                 PB_6
+#define RADIO_DIO_2                                 PB_4
+#define RADIO_DIO_3                                 PA_15
+#define RADIO_DIO_4                                 PB_3
+#define RADIO_DIO_5                                 PA_12
 
 #define RADIO_ANT_SWITCH                            NC//PB_10
 

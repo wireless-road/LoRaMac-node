@@ -30,7 +30,7 @@
 #include "LoRaMac.h"
 #include "Commissioning.h"
 #include "NvmCtxMgmt.h"
-#include "ade7953.h"
+//#include "ade7953.h"
 
 //#include "nmea_gps.h"
 
@@ -910,7 +910,7 @@ static void McpsIndication( McpsIndication_t *mcpsIndication )
                         mlmeReq.Type = MLME_DEVICE_TIME;
 
                         LoRaMacStatus_t status = LoRaMacMlmeRequest( &mlmeReq );
-                        printf( "\r\n###### ===== MLME-Request - MLME_DEVICE_TIME ==== ######\r\n" );
+//                        printf( "\r\n###### ===== MLME-Request - MLME_DEVICE_TIME ==== ######\r\n" );
                         printf( "STATUS      : %s\r\n", MacStatusStrings[status] );
                     }
                     break;
@@ -1054,7 +1054,7 @@ int main( void )
     MibRequestConfirm_t mibReq;
     LoRaMacStatus_t status;
 
-    uint8_t devEui[] = { 0x34, 0x39, 0x34, 0x35, 0x4a, 0x37, 0x75, 0x1c };//LORAWAN_DEVICE_EUI;
+    uint8_t devEui[] = { 0x34, 0x39, 0x34, 0x35, 0x4a, 0x37, 0x75, 0x1f };//LORAWAN_DEVICE_EUI;
     uint8_t joinEui[] = LORAWAN_JOIN_EUI;
 //    uint8_t devEui[] = { 0x34, 0x39, 0x34, 0x35, 0x3a, 0x37, 0x75, 0x16 };//LORAWAN_DEVICE_EUI;
 //    uint8_t joinEui[] = LORAWAN_JOIN_EUI;
@@ -1079,8 +1079,8 @@ int main( void )
 
 //    printf( "###### ===== ClassA demo application v1.0.RC1 ==== ######\r\n\r\n" );
 
-    ADE7953Reset();
-    ADE7953Init();
+//    ADE7953Reset();
+//    ADE7953Init();
 
 
     while( 1 )
