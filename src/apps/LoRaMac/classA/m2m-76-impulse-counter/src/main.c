@@ -1317,7 +1317,11 @@ int main( void )
             {
                 if( NvmCtxMgmtStore( ) == NVMCTXMGMT_STATUS_SUCCESS )
                 {
-//                    printf( "\r\n###### ===== CTXS STORED ==== ######\r\n" );
+  //                  printf( "\r\n###### ===== CTXS STORED ==== ######\r\n" );
+                }
+                else
+                {
+  //              	printf( "\r\n###### ===== CTXS STORE ERROR ==== ######\r\n" );
                 }
 
                 CRITICAL_SECTION_BEGIN( );

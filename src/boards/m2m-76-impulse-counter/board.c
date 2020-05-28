@@ -176,6 +176,7 @@ void BoardInitMcu( void )
         SystemClockReConfig( );
     }
 
+#ifndef BOOTLOADER
 #if defined( SX1261MBXBAS ) || defined( SX1262MBXCAS ) || defined( SX1262MBXDAS )
     SpiInit( &SX126x.Spi, SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, NC );
     SX126xIoInit( );
@@ -186,10 +187,12 @@ void BoardInitMcu( void )
     SpiInit( &SX1276.Spi, SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, RADIO_NSS );
     SX1276IoInit( );
 #endif
+#endif
 
     if( McuInitialized == false )
     {
         McuInitialized = true;
+#ifndef BOOTLOADER
 #if defined( SX1261MBXBAS ) || defined( SX1262MBXCAS ) || defined( SX1262MBXDAS )
         SX126xIoDbgInit( );
         // WARNING: If necessary the TCXO control is initialized by SX126xInit function.
@@ -199,6 +202,7 @@ void BoardInitMcu( void )
 #elif defined( SX1276MB1LAS ) || defined( SX1276MB1MAS )
 //        SX1276IoDbgInit( );
 //        SX1276IoTcxoInit( );
+#endif
 #endif
         if( GetBoardPowerSource( ) == BATTERY_POWER )
         {
@@ -217,6 +221,7 @@ void BoardResetMcu( void )
 
 void BoardDeInitMcu( void )
 {
+#ifndef BOOTLOADER
 #if defined( SX1261MBXBAS ) || defined( SX1262MBXCAS ) || defined( SX1262MBXDAS )
     SpiDeInit( &SX126x.Spi );
     SX126xIoDeInit( );
@@ -226,6 +231,7 @@ void BoardDeInitMcu( void )
 #elif defined( SX1276MB1LAS ) || defined( SX1276MB1MAS )
     SpiDeInit( &SX1276.Spi );
     SX1276IoDeInit( );
+#endif
 #endif
 }
 

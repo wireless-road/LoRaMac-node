@@ -62,7 +62,7 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
   RAM (xrw)		: ORIGIN = 0x20000000, LENGTH = 20K
-  ROM (rx)		: ORIGIN = 0x8000000, LENGTH = 128K
+  ROM (rx)		: ORIGIN = 0x8006000, LENGTH = 104K
 }
 
 /* Sections */
@@ -75,6 +75,13 @@ SECTIONS
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
   } >ROM
+  
+  .version :
+  {
+    . = ALIGN(4);
+    KEEP(*(.version)) /* Version */
+    . = ALIGN(4);
+  } >ROM  
 
   /* The program code and other data into ROM memory */
   .text :
