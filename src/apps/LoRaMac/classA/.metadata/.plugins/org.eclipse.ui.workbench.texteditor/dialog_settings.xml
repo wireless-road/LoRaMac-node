@@ -2,20 +2,20 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="Reset" key="selection"/>
+		<item value="Main" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
+			<item value="main"/>
+			<item value="EventInfoStatusStrings"/>
+			<item value="devEui"/>
+			<item value="Led1"/>
+			<item value="ACTIVE_REGION"/>
 			<item value="Reset"/>
 			<item value="fputc"/>
 			<item value="LL_USART_TransmitData8"/>
-			<item value="UartPutChar_"/>
-			<item value="UartPutChar"/>
-			<item value="main("/>
-			<item value="Board_LL_Usart2_Init"/>
-			<item value="rf_en"/>
 		</list>
 		<list key="replacehistory">
 		</list>
