@@ -57,4 +57,10 @@
 			<locationURI>PARENT-4-PROJECT_LOC/system</locationURI>
 		</link>
 	</linkedResources>
+	<variableList>
+		<variable>
+			<name>SREC</name>
+			<value>file:/D:/Work/Dmitriy/LoRaMac-node/loramac-node/utils</value>
+		</variable>
+	</variableList>
 </projectDescription>

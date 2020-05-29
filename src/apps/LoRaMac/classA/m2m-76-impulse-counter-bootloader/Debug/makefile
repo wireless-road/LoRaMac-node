@@ -53,6 +53,7 @@ post-build:
 	-@echo 'Generating binary and Printing size information:'
 	arm-none-eabi-objcopy -O binary "m2m-76-impulse-counter-bootloader.elf" "m2m-76-impulse-counter-bootloader.bin"
 	arm-none-eabi-size "m2m-76-impulse-counter-bootloader.elf"
+	srec_cat m2m-76-impulse-counter-bootloader.bin -binary -crop 0x0 0x5FFC -fill 0x00 0x0 0x5FFC -crc32-l-e 0x5FFC -o crc.bin -binary
 	-@echo ' '
 
 .PHONY: all clean dependents
