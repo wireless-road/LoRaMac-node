@@ -11,6 +11,7 @@ RM := rm -rf
 -include system/subdir.mk
 -include startup/subdir.mk
 -include src/subdir.mk
+-include lora-protobuf/subdir.mk
 -include boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/subdir.mk
 -include boards/mcu/stm32/subdir.mk
 -include boards/mcu/subdir.mk
@@ -53,7 +54,7 @@ post-build:
 	-@echo 'Generating binary and Printing size information:'
 	arm-none-eabi-objcopy -O binary "m2m-76-impulse-counter-bootloader.elf" "m2m-76-impulse-counter-bootloader.bin"
 	arm-none-eabi-size "m2m-76-impulse-counter-bootloader.elf"
-	srec_cat m2m-76-impulse-counter-bootloader.bin -binary -crop 0x0 0x5FFC -fill 0x00 0x0 0x5FFC -crc32-l-e 0x5FFC -o crc.bin -binary
+	srec_cat m2m-76-impulse-counter-bootloader.bin -binary -crop 0x0 0x5FFC -fill 0x00 0x0 0x5FFC -crc32-l-e 0x5FFC -o m2m-76-impulse-counter-bootloader_crc.bin -binary
 	-@echo ' '
 
 .PHONY: all clean dependents

@@ -14,20 +14,20 @@
 #include "utilities.h"
 #include "board.h"
 #include "gpio.h"
-
+#include "version.h"
+#include "syslog.h"
 
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
 
-#ifdef PRODUCTION
-#define printf(fmt, ...) (0)
-#endif
+#define APP_START_ADDRESS   0x08006000
+#define APP_SIZE          	0x0001A000
 
-#define APP_START_ADDRESS       0x08006000
-#define APP_SIZE          		0x0001A000
+#define BOOT_START_ADDRESS  0x08000000
+#define BOOT_SIZE          	0x00006000
 
-#define CRC32_POLYNOMIAL 0xedb88320ull
+#define CRC32_POLYNOMIAL 	0xedb88320ull
 
 //******************************************************************************
 // Private Types
@@ -70,9 +70,9 @@ static const char* BootStepString[] =
 
 static const char* BootStepResult[] =
 {
-	"ОК\n\r",
-	"FAIL\n\r",
-	"MISSING\n\r",
+	"ОК\n",
+	"FAIL\n",
+	"MISSING\n",
 };
 
 //******************************************************************************
@@ -86,6 +86,11 @@ static const char* BootStepResult[] =
 //******************************************************************************
 // Private Functions
 //******************************************************************************
+
+static void boot_putchar(unsigned char ch)
+{
+	USART2_sendChar(ch);
+}
 
 static uint32_t crc32_app(uint32_t crc, const uint8_t *buf, uint32_t len)
 {
@@ -121,17 +126,24 @@ static BOOT_RESULT BootloaderCheckApp(void)
 {
 	uint32_t CrcAppRead, CrcAppCalc;
 	uint32_t *pCrc;
-
+	VER_RESULT Res;
+	INFO_STRUCT Info;
+	/* Check app crc */
 	pCrc = (uint32_t*)(APP_START_ADDRESS + APP_SIZE - 4);
 	CrcAppCalc = crc32_app(0, (uint8_t*)(APP_START_ADDRESS), (APP_SIZE - 4));
 	CrcAppRead = *pCrc;
-
+	SYSLOG("CRC:CALC=0x%08X,READ=0x%08X\n", CrcAppCalc, CrcAppRead);
 	if (CrcAppCalc != CrcAppRead)
 	{
 		return BOOT_FAIL;
 	}
-
-	/* Check app crc, id etc*/
+	/* Check app id */
+	Res = VersionRead(APP_START_ADDRESS, APP_SIZE, &Info);
+	SYSLOG("VER:Res=%d, DevId=%d, AppVer:%d.%d.%d\n", Res, Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
+	if ((Res == VER_NOT) || (Info.dev_id != DEV_ID))
+	{
+		return BOOT_FAIL;
+	}
 	return BOOT_OK;
 }
 
@@ -173,19 +185,18 @@ static void BootloaderStartApp(void)
 //******************************************************************************
 // Load recovery
 //******************************************************************************
-static void BootloaderLoadRecovery(void)
+static BOOT_RESULT BootloaderLoadRecovery(void)
 {
-
+	return BOOT_OK;
 }
 
 //******************************************************************************
 // Load recovery
 //******************************************************************************
-static void SaveRecovery(void)
+static BOOT_RESULT BootloaderSaveRecovery(void)
 {
-
+	return BOOT_OK;
 }
-
 
 //******************************************************************************
 // Public Functions
@@ -198,12 +209,16 @@ int main( void )
 {
 	BOOT_STEP Step = BOOT_STEP_CHECK_APP;
 	BOOT_RESULT Result;
+	INFO_STRUCT Info;
 
 	BootloaderInit(); // Инициализируем железо
+	SYSLOG_INIT(boot_putchar); // Инициализируем вывод логов
+	VersionRead(BOOT_START_ADDRESS, BOOT_SIZE, &Info);
+	SYSLOG("BOOT:DevId=%d, BootVer:%d.%d.%d\n", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
 
 	while(Step != BOOT_STEP_ERROR)
 	{
-		puts(BootStepString[Step]);
+		SYSLOG(BootStepString[Step]);
 		switch (Step)
 		{
 		case BOOT_STEP_CHECK_APP:
@@ -234,7 +249,7 @@ int main( void )
 		default:
 			break;
 		}
-		puts(BootStepResult[Result]);
+		SYSLOG(BootStepResult[Result]);
 	}
 	BoardResetMcu();
 }
