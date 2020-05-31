@@ -6771,6 +6771,99 @@ Discarded input sections
  .debug_frame   0x00000000       0xa8 boards/mcu/utilities.o
  .ARM.attributes
                 0x00000000       0x32 boards/mcu/utilities.o
+ .group         0x00000000        0xc lora-protobuf/AT25SF041.o
+ .group         0x00000000        0xc lora-protobuf/AT25SF041.o
+ .group         0x00000000        0xc lora-protobuf/AT25SF041.o
+ .group         0x00000000        0xc lora-protobuf/AT25SF041.o
+ .group         0x00000000        0xc lora-protobuf/AT25SF041.o
+ .group         0x00000000        0xc lora-protobuf/AT25SF041.o
+ .group         0x00000000        0xc lora-protobuf/AT25SF041.o
+ .group         0x00000000        0xc lora-protobuf/AT25SF041.o
+ .group         0x00000000        0xc lora-protobuf/AT25SF041.o
+ .text          0x00000000        0x0 lora-protobuf/AT25SF041.o
+ .data          0x00000000        0x0 lora-protobuf/AT25SF041.o
+ .bss           0x00000000        0x0 lora-protobuf/AT25SF041.o
+ .debug_info    0x00000000       0x68 lora-protobuf/AT25SF041.o
+ .debug_abbrev  0x00000000       0x29 lora-protobuf/AT25SF041.o
+ .debug_aranges
+                0x00000000       0x18 lora-protobuf/AT25SF041.o
+ .debug_macro   0x00000000       0x81 lora-protobuf/AT25SF041.o
+ .debug_macro   0x00000000      0xa72 lora-protobuf/AT25SF041.o
+ .debug_macro   0x00000000       0x22 lora-protobuf/AT25SF041.o
+ .debug_macro   0x00000000       0x8e lora-protobuf/AT25SF041.o
+ .debug_macro   0x00000000       0x51 lora-protobuf/AT25SF041.o
+ .debug_macro   0x00000000       0xef lora-protobuf/AT25SF041.o
+ .debug_macro   0x00000000       0x6a lora-protobuf/AT25SF041.o
+ .debug_macro   0x00000000      0x1df lora-protobuf/AT25SF041.o
+ .debug_macro   0x00000000       0x16 lora-protobuf/AT25SF041.o
+ .debug_macro   0x00000000       0x1c lora-protobuf/AT25SF041.o
+ .debug_line    0x00000000      0x308 lora-protobuf/AT25SF041.o
+ .debug_str     0x00000000     0x3c78 lora-protobuf/AT25SF041.o
+ .comment       0x00000000       0x80 lora-protobuf/AT25SF041.o
+ .ARM.attributes
+                0x00000000       0x32 lora-protobuf/AT25SF041.o
+ .group         0x00000000        0xc lora-protobuf/LiteDisk.o
+ .group         0x00000000        0xc lora-protobuf/LiteDisk.o
+ .group         0x00000000        0xc lora-protobuf/LiteDisk.o
+ .group         0x00000000        0xc lora-protobuf/LiteDisk.o
+ .group         0x00000000        0xc lora-protobuf/LiteDisk.o
+ .group         0x00000000        0xc lora-protobuf/LiteDisk.o
+ .group         0x00000000        0xc lora-protobuf/LiteDisk.o
+ .group         0x00000000        0xc lora-protobuf/LiteDisk.o
+ .text          0x00000000        0x0 lora-protobuf/LiteDisk.o
+ .data          0x00000000        0x0 lora-protobuf/LiteDisk.o
+ .bss           0x00000000        0x0 lora-protobuf/LiteDisk.o
+ .debug_info    0x00000000       0x68 lora-protobuf/LiteDisk.o
+ .debug_abbrev  0x00000000       0x29 lora-protobuf/LiteDisk.o
+ .debug_aranges
+                0x00000000       0x18 lora-protobuf/LiteDisk.o
+ .debug_macro   0x00000000       0x72 lora-protobuf/LiteDisk.o
+ .debug_macro   0x00000000      0xa72 lora-protobuf/LiteDisk.o
+ .debug_macro   0x00000000       0x22 lora-protobuf/LiteDisk.o
+ .debug_macro   0x00000000       0x8e lora-protobuf/LiteDisk.o
+ .debug_macro   0x00000000       0x51 lora-protobuf/LiteDisk.o
+ .debug_macro   0x00000000       0xef lora-protobuf/LiteDisk.o
+ .debug_macro   0x00000000       0x6a lora-protobuf/LiteDisk.o
+ .debug_macro   0x00000000      0x1df lora-protobuf/LiteDisk.o
+ .debug_macro   0x00000000       0x16 lora-protobuf/LiteDisk.o
+ .debug_line    0x00000000      0x2f8 lora-protobuf/LiteDisk.o
+ .debug_str     0x00000000     0x3c32 lora-protobuf/LiteDisk.o
+ .comment       0x00000000       0x80 lora-protobuf/LiteDisk.o
+ .ARM.attributes
+                0x00000000       0x32 lora-protobuf/LiteDisk.o
+ .group         0x00000000        0xc lora-protobuf/LiteDiskDefs.o
+ .group         0x00000000        0xc lora-protobuf/LiteDiskDefs.o
+ .group         0x00000000        0xc lora-protobuf/LiteDiskDefs.o
+ .group         0x00000000        0xc lora-protobuf/LiteDiskDefs.o
+ .group         0x00000000        0xc lora-protobuf/LiteDiskDefs.o
+ .group         0x00000000        0xc lora-protobuf/LiteDiskDefs.o
+ .group         0x00000000        0xc lora-protobuf/LiteDiskDefs.o
+ .group         0x00000000        0xc lora-protobuf/LiteDiskDefs.o
+ .group         0x00000000        0xc lora-protobuf/LiteDiskDefs.o
+ .group         0x00000000        0xc lora-protobuf/LiteDiskDefs.o
+ .text          0x00000000        0x0 lora-protobuf/LiteDiskDefs.o
+ .data          0x00000000       0x12 lora-protobuf/LiteDiskDefs.o
+ .bss           0x00000000        0x0 lora-protobuf/LiteDiskDefs.o
+ .debug_info    0x00000000       0xdc lora-protobuf/LiteDiskDefs.o
+ .debug_abbrev  0x00000000       0x8f lora-protobuf/LiteDiskDefs.o
+ .debug_aranges
+                0x00000000       0x18 lora-protobuf/LiteDiskDefs.o
+ .debug_macro   0x00000000       0x8a lora-protobuf/LiteDiskDefs.o
+ .debug_macro   0x00000000      0xa72 lora-protobuf/LiteDiskDefs.o
+ .debug_macro   0x00000000       0x22 lora-protobuf/LiteDiskDefs.o
+ .debug_macro   0x00000000       0x8e lora-protobuf/LiteDiskDefs.o
+ .debug_macro   0x00000000       0x51 lora-protobuf/LiteDiskDefs.o
+ .debug_macro   0x00000000       0xef lora-protobuf/LiteDiskDefs.o
+ .debug_macro   0x00000000       0x6a lora-protobuf/LiteDiskDefs.o
+ .debug_macro   0x00000000      0x1df lora-protobuf/LiteDiskDefs.o
+ .debug_macro   0x00000000       0x16 lora-protobuf/LiteDiskDefs.o
+ .debug_macro   0x00000000       0x22 lora-protobuf/LiteDiskDefs.o
+ .debug_macro   0x00000000       0x3a lora-protobuf/LiteDiskDefs.o
+ .debug_line    0x00000000      0x31d lora-protobuf/LiteDiskDefs.o
+ .debug_str     0x00000000     0x3df5 lora-protobuf/LiteDiskDefs.o
+ .comment       0x00000000       0x80 lora-protobuf/LiteDiskDefs.o
+ .ARM.attributes
+                0x00000000       0x32 lora-protobuf/LiteDiskDefs.o
  .group         0x00000000        0xc lora-protobuf/syslog.o
  .group         0x00000000        0xc lora-protobuf/syslog.o
  .group         0x00000000        0xc lora-protobuf/syslog.o
@@ -8098,6 +8191,9 @@ LOAD boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_spi.o
 LOAD boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_usart.o
 LOAD boards/mcu/stm32/sysIrqHandlers.o
 LOAD boards/mcu/utilities.o
+LOAD lora-protobuf/AT25SF041.o
+LOAD lora-protobuf/LiteDisk.o
+LOAD lora-protobuf/LiteDiskDefs.o
 LOAD lora-protobuf/syslog.o
 LOAD lora-protobuf/version.o
 LOAD lora-protobuf/xprintf.o
