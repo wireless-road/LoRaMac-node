@@ -33,6 +33,12 @@
 #ifndef __BOARD_CONFIG_H__
 #define __BOARD_CONFIG_H__
 
+#define APP_START_ADDRESS   0x08006000
+#define APP_SIZE          	0x0001A000
+
+#define BOOT_START_ADDRESS  0x08000000
+#define BOOT_SIZE          	0x00006000
+
 /*!
  * Defines the time required for the TCXO to wakeup [ms].
  */

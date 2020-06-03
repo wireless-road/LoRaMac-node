@@ -23,12 +23,6 @@
 // Pre-processor Definitions
 //******************************************************************************
 
-#define APP_START_ADDRESS   0x08006000
-#define APP_SIZE          	0x0001A000
-
-#define BOOT_START_ADDRESS  0x08000000
-#define BOOT_SIZE          	0x00006000
-
 #define CRC32_POLYNOMIAL 	0xedb88320ull
 
 //******************************************************************************
@@ -236,6 +230,7 @@ int main( void )
 	VersionRead(BOOT_START_ADDRESS, BOOT_SIZE, &Info);
 	SYSLOG("BOOT:DevId=%d, BootVer:%d.%d.%d\n", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
 	isDiskInit = BootloaderDiskInit();
+	SYSLOG("Result init disk\n = %d", isDiskInit);
 
 	while(Step != BOOT_STEP_ERROR)
 	{
