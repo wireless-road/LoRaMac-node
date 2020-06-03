@@ -34,6 +34,8 @@ enum BoardPowerSources
     BATTERY_POWER,
 };
 
+
+
 /*!
  * \brief Initializes the mcu.
  */

@@ -53,6 +53,9 @@
  */
 Gpio_t Led1;
 Gpio_t Led2;
+#ifdef BOOTLOADER
+Spi_t Spi;
+#endif
 
 /*
  * MCU objects
@@ -187,6 +190,8 @@ void BoardInitMcu( void )
     SpiInit( &SX1276.Spi, SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, RADIO_NSS );
     SX1276IoInit( );
 #endif
+#else
+    SpiInit( &Spi, SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, NC );
 #endif
 
     if( McuInitialized == false )

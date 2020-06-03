@@ -96,6 +96,9 @@
 #define LED_1                                       NC//PB_8
 #define LED_2                                       NC
 
+#define FLASH_DISK_NSS								PA_3
+#define FLASH_DISK_POWER							PB_10
+
 // Debug pins definition.
 #define RADIO_DBG_PIN_TX                            NC//PB_14
 #define RADIO_DBG_PIN_RX                            NC//PA_15

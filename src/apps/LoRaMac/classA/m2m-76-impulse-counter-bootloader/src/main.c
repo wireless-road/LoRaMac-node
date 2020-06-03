@@ -16,6 +16,8 @@
 #include "gpio.h"
 #include "version.h"
 #include "syslog.h"
+#include "LiteDisk.h"
+#include "LiteDiskDefs.h"
 
 //******************************************************************************
 // Pre-processor Definitions
@@ -83,6 +85,10 @@ static const char* BootStepResult[] =
 // Public Data
 //******************************************************************************
 
+#ifdef BOOTLOADER
+extern Spi_t Spi;
+#endif
+
 //******************************************************************************
 // Private Functions
 //******************************************************************************
@@ -118,6 +124,19 @@ static void BootloaderInit(void)
     BoardInitMcu( );
     BoardInitPeriph( );
 }
+
+//******************************************************************************
+// dISK initialization
+//******************************************************************************
+static bool BootloaderDiskInit(void)
+{
+	if (LiteDiskInit(&DISK, &Spi, &FILE_TABLE) != DRESULT_OK)
+	{
+		return false;
+	}
+	return true;
+}
+
 
 //******************************************************************************
 // Verify Destination Application
@@ -210,11 +229,13 @@ int main( void )
 	BOOT_STEP Step = BOOT_STEP_CHECK_APP;
 	BOOT_RESULT Result;
 	INFO_STRUCT Info;
+	bool isDiskInit;
 
 	BootloaderInit(); // Инициализируем железо
 	SYSLOG_INIT(boot_putchar); // Инициализируем вывод логов
 	VersionRead(BOOT_START_ADDRESS, BOOT_SIZE, &Info);
 	SYSLOG("BOOT:DevId=%d, BootVer:%d.%d.%d\n", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
+	isDiskInit = BootloaderDiskInit();
 
 	while(Step != BOOT_STEP_ERROR)
 	{
