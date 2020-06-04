@@ -27,7 +27,7 @@
 #define CMD_READ_ARRAY 	 	   		0x03
 #define CMD_WRITE_ARRAY 	 	   	0x02
 
-#define TIMEOUT_STEP				5
+#define TIMEOUT_STEP				10
 
 //******************************************************************************
 // Private Types
@@ -102,19 +102,21 @@ static bool AT25AT25SFWaitReady(uint32_t Timeout)
 {
 	uint32_t Wait = 0;
 	At25sf041_header cmd;
-	uint8_t Stat;
+	uint8_t Stat[2];
 	cmd.opcode = CMD_READ_SRB1;
 	cmd.SizeAddr = 0;
 	cmd.SizeDummy = 0;
 
-	while (Wait < Timeout)
+	do
 	{
-		AT25AT25SF041InOut(&cmd, NULL, 0, &Stat, 1);
-		if ((Stat & 0x01) == 0) return true;
+		AT25AT25SF041InOut(&cmd, NULL, 0, Stat, 2);
 		DelayMs(TIMEOUT_STEP);
 		Wait += TIMEOUT_STEP;
 	}
-	return false;
+	while((Stat[0] & 1) && (Wait < Timeout));
+
+	if (Wait >= Timeout) return false;
+	return true;
 }
 
 //******************************************************************************
@@ -122,11 +124,12 @@ static bool AT25AT25SFWaitReady(uint32_t Timeout)
 //******************************************************************************
 static bool AT25AT25SFResetWP(void)
 {
-	At25sf041_header cmd;
+/*	At25sf041_header cmd;
 	cmd.opcode = CMD_WRITE_ENABLE;
 	cmd.SizeAddr = 0;
 	cmd.SizeDummy = 0;
 	AT25AT25SF041InOut(&cmd, NULL, 0, NULL, 0);
+	*/
 	return true;
 }
 
@@ -136,11 +139,12 @@ static bool AT25AT25SFResetWP(void)
 //******************************************************************************
 static bool AT25AT25SFSetWP(void)
 {
-	At25sf041_header cmd;
+/*	At25sf041_header cmd;
 	cmd.opcode = CMD_WRITE_DISABLE;
 	cmd.SizeAddr = 0;
 	cmd.SizeDummy = 0;
 	AT25AT25SF041InOut(&cmd, NULL, 0, NULL, 1);
+	*/
 	return true;
 }
 
@@ -157,6 +161,7 @@ static int at25sf041_page_write(uint32_t Addr, uint8_t *Data, uint16_t Size)
 	Offs = (Addr % AT25SF041_PAGE_SIZE);
 	if (Size > (AT25SF041_PAGE_SIZE - Offs)) Amount = (AT25SF041_PAGE_SIZE - Offs);
 	else Amount = Size;
+	SYSLOG("WRITE PAGE. Addr = %x, Size=%d\n", Addr, Amount);
 	cmd.opcode = CMD_WRITE_ARRAY;
 	cmd.Addr[0] = (uint8_t)(Addr >> 16);
 	cmd.Addr[1] = (uint8_t)(Addr >> 8);
@@ -202,6 +207,11 @@ int at25sf041_init(void *InitStr)
 	{
 		return DRESULT_ERROR;
 	}
+	//At25sf041_header cmd;
+	cmd.opcode = CMD_WRITE_ENABLE;
+	cmd.SizeAddr = 0;
+	cmd.SizeDummy = 0;
+	AT25AT25SF041InOut(&cmd, NULL, 0, NULL, 0);
 	return DRESULT_OK;
 }
 
@@ -233,6 +243,7 @@ int at25sf041_erase_sector(uint16_t Sector)
 		return DRESULT_NOTRDY;
 	}
 	AT25AT25SFSetWP();
+	SYSLOG("CLEAD SECTOR. Addr = %x\n", addr);
 	return DRESULT_OK;
 }
 
@@ -263,7 +274,7 @@ int at25sf041_sector_write(uint8_t *Data, uint16_t Sector, uint16_t Offs, uint16
 		PageWritedSize = at25sf041_page_write(Addr + tWrited, &Data[tWrited], Amount);
 		if (PageWritedSize > 0)
 		{
-			tWrited += tWrited;
+			tWrited += PageWritedSize;
 		}
 		else if (PageWritedSize == 0)
 		{

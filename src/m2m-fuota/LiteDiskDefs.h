@@ -18,17 +18,14 @@
 
 #define SECTOR_SIZE				AT25SF041_SECTOR_SIZE
 
-#define UPDATE_FILE_ID			(NULL_FILE_ID + 1)
-#define UPDATE_FILE_START		(0)
-#define UPDATE_FILE_SIZE		(((104*1024)/SECTOR_SIZE) + 1)
+#define RECOVERY_FILE_ID		(NULL_FILE_ID + 1)
+#define RECOVERY_FILE_START		(0)
+#define RECOVERY_FILE_SIZE		(((104*1024)/SECTOR_SIZE))
 
-#define RECOVERY0_FILE_ID		(UPDATE_FILE_ID + 1)
-#define RECOVERY0_FILE_START	(UPDATE_FILE_START + UPDATE_FILE_SIZE)
-#define RECOVERY0_FILE_SIZE		(((104*1024)/SECTOR_SIZE))
+#define UPDATE_FILE_ID			(RECOVERY_FILE_ID + 1)
+#define UPDATE_FILE_START		(RECOVERY_FILE_START + RECOVERY_FILE_SIZE)
+#define UPDATE_FILE_SIZE		(((104*1024)/SECTOR_SIZE))
 
-#define RECOVERY1_FILE_ID		(RECOVERY0_FILE_ID + 1)
-#define RECOVERY1_FILE_START	(RECOVERY0_FILE_START + RECOVERY0_FILE_SIZE)
-#define RECOVERY1_FILE_SIZE		(((104*1024)/SECTOR_SIZE))
 //******************************************************************************
 // Public Types
 //******************************************************************************

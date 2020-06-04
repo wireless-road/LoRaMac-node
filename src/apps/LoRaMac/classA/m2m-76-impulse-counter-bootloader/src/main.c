@@ -55,21 +55,22 @@ typedef  void ( *pFunction )( void );
 
 static const char* BootStepString[] =
 {
-    "BOOT:CHECK_APP ",
-    "BOOT:CHECK_UPDATE ",
-    "BOOT:UPDATE ",
-    "BOOT:START_APP ",
-	"BOOT:RELOAD ",
-	"BOOT:RECOVERY ",
-	"BOOT:ERROR ",
+    "BOOT:CHECK_APP",
+    "BOOT:CHECK_UPDATE",
+    "BOOT:UPDATE",
+    "BOOT:START_APP",
+	"BOOT:RELOAD",
+	"BOOT:RECOVERY",
+	"BOOT:ERROR",
 };
 
 static const char* BootStepResult[] =
 {
-	"ОК\n",
+	"OK\n",
 	"FAIL\n",
 	"MISSING\n",
 };
+static bool isDiskInit;
 
 //******************************************************************************
 // Private Data
@@ -200,14 +201,80 @@ static void BootloaderStartApp(void)
 //******************************************************************************
 static BOOT_RESULT BootloaderLoadRecovery(void)
 {
+
 	return BOOT_OK;
 }
 
 //******************************************************************************
-// Load recovery
+// Check recovery
+//******************************************************************************
+static BOOT_RESULT BootloaderCheckRecovery(void)
+{
+	uint32_t CrcCalc = 0;
+	uint32_t CrcRead;
+	uint8_t Buff[256];
+	uint32_t AmountRead;
+	int Result;
+
+	if (isDiskInit == false)
+	{
+		return BOOT_MISSING;
+	}
+	for(AmountRead =0; AmountRead < APP_SIZE; )
+	{
+		Result = LiteDiskFileRead(RECOVERY_FILE_ID, AmountRead, 256, Buff);
+		if(Result == 256)
+		{
+			AmountRead += Result;
+			if (AmountRead < APP_SIZE)
+			{
+				CrcCalc = crc32_app(CrcCalc, Buff, Result);
+			}
+			else
+			{
+				CrcCalc = crc32_app(CrcCalc, Buff, (Result - 4));
+				CrcRead = (uint32_t)(Buff[255] << 24) + (uint32_t)(Buff[254] << 16) + (uint32_t)(Buff[253] << 8) + (uint32_t)(Buff[252] << 0);
+			}
+		}
+		else
+		{
+			SYSLOG("RESULT READ RECOVERY ERR=%d. AmountRead = %d\n", Result, AmountRead);
+			return BOOT_FAIL;
+		}
+	}
+	SYSLOG("RECOVERY CRC_CALC=0x%08X, CRC_READ=0x%08X\n", CrcCalc, CrcRead);
+	if (CrcCalc != CrcRead) return BOOT_FAIL;
+	return BOOT_OK;
+}
+
+
+//******************************************************************************
+// Save recovery
 //******************************************************************************
 static BOOT_RESULT BootloaderSaveRecovery(void)
 {
+	int Result;
+	uint32_t AmountWrited;
+	uint8_t *pData;
+
+	pData = (uint8_t*)(APP_START_ADDRESS);
+	Result = LiteDiskFileClear(RECOVERY_FILE_ID); // Очищаем файл
+	SYSLOG("CLEAR RECOVERY SIZE=%d\n", Result);
+	if(Result < 0) return BOOT_FAIL;
+	for(AmountWrited = 0; AmountWrited < APP_SIZE;)
+	{
+		Result = LiteDiskFileWrite(RECOVERY_FILE_ID, AmountWrited, 256, &pData[AmountWrited]);
+		if(Result == 256)
+		{
+			AmountWrited += Result;
+		}
+		else
+		{
+			SYSLOG("RESULT WRITE RECOVERY ERR=%d. AmountWrited = %d\n", Result, AmountWrited);
+			return BOOT_FAIL;
+		}
+	}
+	SYSLOG("RESULT WRITE RECOVERY COMPLEATE SIZE=%d\n", AmountWrited);
 	return BOOT_OK;
 }
 
@@ -221,26 +288,37 @@ static BOOT_RESULT BootloaderSaveRecovery(void)
 int main( void )
 {
 	BOOT_STEP Step = BOOT_STEP_CHECK_APP;
+	BOOT_STEP CurStep;
 	BOOT_RESULT Result;
 	INFO_STRUCT Info;
-	bool isDiskInit;
 
 	BootloaderInit(); // Инициализируем железо
 	SYSLOG_INIT(boot_putchar); // Инициализируем вывод логов
 	VersionRead(BOOT_START_ADDRESS, BOOT_SIZE, &Info);
 	SYSLOG("BOOT:DevId=%d, BootVer:%d.%d.%d\n", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
 	isDiskInit = BootloaderDiskInit();
-	SYSLOG("Result init disk\n = %d", isDiskInit);
+	SYSLOG("Result init disk = %d\n", isDiskInit);
 
 	while(Step != BOOT_STEP_ERROR)
 	{
-		SYSLOG(BootStepString[Step]);
+		CurStep = Step;
 		switch (Step)
 		{
 		case BOOT_STEP_CHECK_APP:
 			Result = BootloaderCheckApp();
-			if (Result == BOOT_OK) Step = BOOT_STEP_CHECK_UPDATE;
-			else Step = BOOT_STEP_RECOVERY;
+			if (Result == BOOT_OK)
+			{
+				if (BootloaderCheckRecovery() == BOOT_FAIL)
+				{
+					SYSLOG("Recovery file is damaged\n");
+					SYSLOG("Write recovery result = %d\n", BootloaderSaveRecovery());
+				}
+				Step = BOOT_STEP_CHECK_UPDATE;
+			}
+			else
+			{
+				Step = BOOT_STEP_RECOVERY;
+			}
 			break;
 		case BOOT_STEP_CHECK_UPDATE:
 			Result = BootloaderCheckNeedUpdate();
@@ -254,6 +332,7 @@ int main( void )
 			else Step = BOOT_STEP_RECOVERY;
 			break;
 		case BOOT_STEP_START_APP:
+			SYSLOG("%s %s", BootStepString[Step], BootStepResult[BOOT_OK]);
 			BootloaderStartApp();
 			break;
 		case BOOT_STEP_RELOAD:
@@ -265,7 +344,7 @@ int main( void )
 		default:
 			break;
 		}
-		SYSLOG(BootStepResult[Result]);
+		SYSLOG("BOOT:%s-%s", BootStepString[CurStep], BootStepResult[Result]);
 	}
 	BoardResetMcu();
 }

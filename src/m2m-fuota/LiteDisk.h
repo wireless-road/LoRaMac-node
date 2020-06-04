@@ -76,7 +76,6 @@ extern "C"
 DRESULT LiteDiskInit(LT_DISK *Disk, void *DiskInitStr, LT_FILE *Table);
 
 int LiteDiskFileClear(uint16_t FileID);
-int LiteDiskFileClearArray(uint16_t FileID, uint32_t Offs, uint32_t Size);
 int LiteDiskFileWrite(uint16_t FileID, uint32_t Offs, uint32_t Size, uint8_t *Data);
 int LiteDiskFileRead(uint16_t FileID, uint32_t Offs, uint32_t Size, uint8_t *Data);
   
