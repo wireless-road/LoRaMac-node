@@ -20,7 +20,7 @@ boards/m2m-76-impulse-counter/cmsis \
 boards/mcu/stm32/STM32L0xx_HAL_Driver/Src \
 boards/mcu/stm32 \
 boards/mcu \
-lora-protobuf \
+m2m-fuota \
 src \
 startup \
 system \

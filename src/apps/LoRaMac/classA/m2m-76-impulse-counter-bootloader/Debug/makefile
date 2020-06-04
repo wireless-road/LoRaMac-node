@@ -11,7 +11,7 @@ RM := rm -rf
 -include system/subdir.mk
 -include startup/subdir.mk
 -include src/subdir.mk
--include lora-protobuf/subdir.mk
+-include m2m-fuota/subdir.mk
 -include boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/subdir.mk
 -include boards/mcu/stm32/subdir.mk
 -include boards/mcu/subdir.mk

@@ -37,9 +37,9 @@
 			<locationURI>PARENT-2-PROJECT_LOC/common</locationURI>
 		</link>
 		<link>
-			<name>lora-protobuf</name>
+			<name>m2m-fuota</name>
 			<type>2</type>
-			<location>D:/Work/Dmitriy/LoRaMac-node/loramac-node/src/lora-protobuf</location>
+			<location>D:/Work/Dmitriy/LoRaMac-node/loramac-node/src/m2m-fuota</location>
 		</link>
 		<link>
 			<name>mac</name>

@@ -25,6 +25,9 @@
 #define CMD_WRITE_ENABLE			0x06
 #define CMD_WRITE_DISABLE			0x04
 #define CMD_READ_ARRAY 	 	   		0x03
+#define CMD_WRITE_ARRAY 	 	   	0x02
+
+#define TIMEOUT_STEP				5
 
 //******************************************************************************
 // Private Types
@@ -108,8 +111,8 @@ static bool AT25AT25SFWaitReady(uint32_t Timeout)
 	{
 		AT25AT25SF041InOut(&cmd, NULL, 0, &Stat, 1);
 		if ((Stat & 0x01) == 0) return true;
-		DelayMs(2);
-		Wait += 2;
+		DelayMs(TIMEOUT_STEP);
+		Wait += TIMEOUT_STEP;
 	}
 	return false;
 }
@@ -141,17 +144,26 @@ static bool AT25AT25SFSetWP(void)
 	return true;
 }
 
-static int at25sf041_page_write(uint8_t *Data, uint16_t Sector, uint16_t Offs, uint16_t Size)
+static int at25sf041_page_write(uint32_t Addr, uint8_t *Data, uint16_t Size)
 {
 	At25sf041_header cmd;
-	uint32_t Addr;
 	uint32_t Amount;
+	uint16_t Offs;
 
-	if (Sector >= AT25SF041_SECTOR_TOTAL) return DRESULT_PARERR;
-	if (Offs >= AT25SF041_SECTOR_SIZE) return DRESULT_PARERR;
-	Addr = (Sector * AT25SF041_SECTOR_SIZE) + Offs;
-	if (Size > (AT25SF041_SECTOR_SIZE - Offs)) Amount = (AT25SF041_SECTOR_SIZE - Offs);
+	if (AT25AT25SFWaitReady(1000) != true)
+	{
+		return DRESULT_NOTRDY;
+	}
+	Offs = (Addr % AT25SF041_PAGE_SIZE);
+	if (Size > (AT25SF041_PAGE_SIZE - Offs)) Amount = (AT25SF041_PAGE_SIZE - Offs);
 	else Amount = Size;
+	cmd.opcode = CMD_WRITE_ARRAY;
+	cmd.Addr[0] = (uint8_t)(Addr >> 16);
+	cmd.Addr[1] = (uint8_t)(Addr >> 8);
+	cmd.Addr[2] = (uint8_t)(Addr >> 0);
+	cmd.SizeAddr = 3;
+	cmd.SizeDummy = 0;
+	AT25AT25SF041InOut(&cmd, Data, Amount, NULL, 0);
 	return Amount;
 }
 
@@ -205,14 +217,13 @@ int at25sf041_erase_sector(uint16_t Sector)
 	if (AT25AT25SFResetWP() != true) return DRESULT_WRPRT;
 	if (AT25AT25SFWaitReady(1000) != true)
 	{
-		AT25AT25SFSetWP();
 		return DRESULT_NOTRDY;
 	}
 	addr = (Sector * AT25SF041_SECTOR_SIZE);
 	cmd.opcode = CMD_BLOCK_ERASE_4K;
 	cmd.Addr[0] = (uint8_t)(addr >> 16);
-	cmd.Addr[0] = (uint8_t)(addr >> 8);
-	cmd.Addr[0] = (uint8_t)(addr >> 0);
+	cmd.Addr[1] = (uint8_t)(addr >> 8);
+	cmd.Addr[2] = (uint8_t)(addr >> 0);
 	cmd.SizeAddr = 3;
 	cmd.SizeDummy = 0;
 	AT25AT25SF041InOut(&cmd, NULL, 0, NULL, 0);
@@ -233,20 +244,40 @@ int at25sf041_sector_write(uint8_t *Data, uint16_t Sector, uint16_t Offs, uint16
 	At25sf041_header cmd;
 	uint32_t Addr;
 	uint32_t Amount;
+	uint32_t tWrited = 0;
+	int PageWritedSize;
 
 	if (Sector >= AT25SF041_SECTOR_TOTAL) return DRESULT_PARERR;
 	if (Offs >= AT25SF041_SECTOR_SIZE) return DRESULT_PARERR;
 	if (AT25AT25SFResetWP() != true) return DRESULT_WRPRT;
 	if (AT25AT25SFWaitReady(1000) != true)
 	{
-		AT25AT25SFSetWP();
 		return DRESULT_NOTRDY;
 	}
 	Addr = (Sector * AT25SF041_SECTOR_SIZE) + Offs;
 	if (Size > (AT25SF041_SECTOR_SIZE - Offs)) Amount = (AT25SF041_SECTOR_SIZE - Offs);
 	else Amount = Size;
+
+	while (tWrited < Amount)
+	{
+		PageWritedSize = at25sf041_page_write(Addr + tWrited, &Data[tWrited], Amount);
+		if (PageWritedSize > 0)
+		{
+			tWrited += tWrited;
+		}
+		else if (PageWritedSize == 0)
+		{
+			AT25AT25SFSetWP();
+			return tWrited;
+		}
+		else
+		{
+			AT25AT25SFSetWP();
+			return PageWritedSize;
+		}
+	}
 	AT25AT25SFSetWP();
-	return Amount;
+	return tWrited;
 }
 
 //******************************************************************************
@@ -260,18 +291,19 @@ int at25sf041_sector_read(uint8_t *Data, uint16_t Sector, uint16_t Offs, uint16_
 
 	if (Sector >= AT25SF041_SECTOR_TOTAL) return DRESULT_PARERR;
 	if (Offs >= AT25SF041_SECTOR_SIZE) return DRESULT_PARERR;
+	if (AT25AT25SFWaitReady(1000) != true)
+	{
+		return DRESULT_NOTRDY;
+	}
 	Addr = (Sector * AT25SF041_SECTOR_SIZE) + Offs;
 	if (Size > (AT25SF041_SECTOR_SIZE - Offs)) Amount = (AT25SF041_SECTOR_SIZE - Offs);
 	else Amount = Size;
-	if (AT25AT25SFWaitReady(1000) != true)
-	{
-		AT25AT25SFSetWP();
-		return DRESULT_NOTRDY;
-	}
 	cmd.opcode = CMD_READ_ARRAY;
 	cmd.Addr[0] = (uint8_t)(Addr >> 16);
-	cmd.Addr[0] = (uint8_t)(Addr >> 8);
-	cmd.Addr[0] = (uint8_t)(Addr >> 0);
+	cmd.Addr[1] = (uint8_t)(Addr >> 8);
+	cmd.Addr[2] = (uint8_t)(Addr >> 0);
+	cmd.SizeAddr = 3;
+	cmd.SizeDummy = 0;
 	AT25AT25SF041InOut(&cmd, NULL, 0, Data, Amount);
 	return Amount;
 }
