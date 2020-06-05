@@ -39,7 +39,7 @@
 		<link>
 			<name>m2m-fuota</name>
 			<type>2</type>
-			<location>D:/Work/Dmitriy/LoRaMac-node/loramac-node/src/m2m-fuota</location>
+			<locationURI>PARENT-4-PROJECT_LOC/m2m-fuota</locationURI>
 		</link>
 		<link>
 			<name>mac</name>

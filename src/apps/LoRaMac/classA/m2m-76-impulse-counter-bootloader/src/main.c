@@ -255,15 +255,16 @@ static BOOT_RESULT BootloaderSaveRecovery(void)
 {
 	int Result;
 	uint32_t AmountWrited;
-	uint8_t *pData;
+	//uint8_t *pData;
+	uint8_t Buff[256] = {0x55};
 
-	pData = (uint8_t*)(APP_START_ADDRESS);
+	//pData = (uint8_t*)(APP_START_ADDRESS);
 	Result = LiteDiskFileClear(RECOVERY_FILE_ID); // Очищаем файл
 	SYSLOG("CLEAR RECOVERY SIZE=%d\n", Result);
 	if(Result < 0) return BOOT_FAIL;
 	for(AmountWrited = 0; AmountWrited < APP_SIZE;)
 	{
-		Result = LiteDiskFileWrite(RECOVERY_FILE_ID, AmountWrited, 256, &pData[AmountWrited]);
+		Result = LiteDiskFileWrite(RECOVERY_FILE_ID, AmountWrited, 256, Buff);
 		if(Result == 256)
 		{
 			AmountWrited += Result;

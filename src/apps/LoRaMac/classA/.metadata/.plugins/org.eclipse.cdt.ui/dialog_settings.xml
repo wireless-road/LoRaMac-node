@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
-	<item value="PRODUCTION" key="org.eclipse.cdt.utils.ui.controls.FileListControl"/>
+	<item value="${workspace_loc:/${ProjName}/m2m-fuota}" key="org.eclipse.cdt.utils.ui.controls.FileListControl"/>
 	<item value="Default C header template" key="LastUsedHeaderTemplate"/>
 	<section name="org.eclipse.cdt.ui.OPEN_ACTION_SELECTION_DIALOG_SECTION">
 		<item value="398" key="DIALOG_WIDTH"/>
