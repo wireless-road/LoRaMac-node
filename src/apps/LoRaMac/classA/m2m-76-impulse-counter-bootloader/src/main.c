@@ -414,7 +414,7 @@ int main( void )
 			else
 			{
 				Result = BootloaderAppUpdate();
-				if (Result == BOOT_OK) Step = BOOT_STEP_CHECK_APP;
+				if (Result == BOOT_OK) Step = BOOT_STEP_RELOAD;
 				else Step = BOOT_STEP_RECOVERY;
 			}
 			break;
