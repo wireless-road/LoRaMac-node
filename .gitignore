@@ -36,3 +36,4 @@ src/apps/LoRaMac/classA/.metadata/.plugins/org.eclipse.core.resources/.projects/
 *.d
 *.o
 *.index
+/src/apps/LoRaMac/classA/m2m-76-impulse-counter-bootloader/Debug
