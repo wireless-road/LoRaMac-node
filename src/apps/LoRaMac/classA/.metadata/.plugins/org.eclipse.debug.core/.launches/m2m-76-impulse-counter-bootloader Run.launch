@@ -9,7 +9,7 @@
 <stringAttribute key="fr.ac6.mcu.ide.DBG_INTERFACE_FREQUENCY" value="8000000.0"/>
 <stringAttribute key="fr.ac6.mcu.ide.DBG_LOW_POWER_MODE_ALLOWED" value="true"/>
 <intAttribute key="fr.ac6.mcu.ide.DBG_NB_CORES" value="1"/>
-<stringAttribute key="fr.ac6.mcu.ide.DBG_RESET_MODE" value="connect_under_reset"/>
+<stringAttribute key="fr.ac6.mcu.ide.DBG_RESET_MODE" value="hard"/>
 <stringAttribute key="fr.ac6.mcu.ide.DBG_STOP_WATCHDOG_THEN_HALTED_ALLOWED" value="true"/>
 <booleanAttribute key="fr.ac6.mcu.ide.OPENOCD_GENERATOR_OPTION" value="true"/>
 <booleanAttribute key="fr.ac6.mcu.ide.OPENOCD_LAUNCH" value="true"/>

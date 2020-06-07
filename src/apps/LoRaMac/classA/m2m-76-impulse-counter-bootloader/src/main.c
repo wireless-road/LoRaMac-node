@@ -426,6 +426,11 @@ int main( void )
 			BoardResetMcu();
 			break;
 		case BOOT_STEP_RECOVERY:
+			if (BootloaderCheckRecovery() == BOOT_FAIL)
+			{
+				SYSLOG("Recovery file is damaged\n");
+				Step = BOOT_STEP_ERROR;
+			}
 			Result = BootloaderLoadRecovery();
 			if (Result == BOOT_OK) Step = BOOT_STEP_RELOAD;
 			else Step = BOOT_STEP_ERROR;
@@ -435,5 +440,9 @@ int main( void )
 		}
 		SYSLOG("BOOT:%s-%s", BootStepString[CurStep], BootStepResult[Result]);
 	}
-	BoardResetMcu();
+	// ERROS STATE
+	while(1)
+	{
+		SYSLOG("FATAL ERROR!!!!\n");
+	}
 }

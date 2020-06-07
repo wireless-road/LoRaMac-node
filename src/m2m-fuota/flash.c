@@ -57,10 +57,10 @@ static bool FlashErase(uint32_t StartAddr, uint32_t Size)
 	Result = HAL_FLASHEx_Erase(&EraseInit, &PageError);
 	if (Result != HAL_OK)
 	{
-		SYSLOG("ERASE ERROR. PageError=%d", PageError);
+		SYSLOG("ERASE ERROR. PageError=%d\n", PageError);
 		return false;
 	}
-	SYSLOG("ERASE OK. PageError=%d", PageError);
+	SYSLOG("ERASE OK. PageError=%d\n", PageError);
 	return true;
 }
 
@@ -103,39 +103,36 @@ FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size, uint16_t FileID)
 {
 	uint8_t Buff[FLASH_PAGE_SIZE];
 	uint32_t Offs;
-	DRESULT Result;
+	int Result;
 	// Unlock flash
-	if (HAL_FLASH_Unlock() != HAL_OK)
-	{
-		SYSLOG("ERROR UNLOCK FLASH\n");
-		return FLASH_ERRROR;
-	}
+	HAL_FLASH_Unlock();
 	// Erase flash
 	if (FlashErase(StartAddr, Size) != true)
 	{
 		SYSLOG("ERROR ERASE FLASH\n");
-		HAL_FLASH_Lock();
+		//HAL_FLASH_Lock();
 		return FLASH_ERRROR;
 	};
 	// Write
 	for (Offs = 0; Offs < Size; )
 	{
 		Result = LiteDiskFileRead(FileID, Offs, sizeof(Buff), Buff);
-		if (Result <= 0)
+		if (Result != sizeof(Buff))
 		{
 			SYSLOG("ERROR READ IMAGE.FileID = %d,Offs = %d\n", FileID ,Offs);
-			HAL_FLASH_Lock();
+			//HAL_FLASH_Lock();
 			return FLASH_ERRROR;
 		}
 		if (FlashWrite((StartAddr + Offs), sizeof(Buff), Buff) != true)
 		{
 			SYSLOG("ERROR WRITE IMAGE.Addr = 0x%X\n", (StartAddr + Offs));
-			HAL_FLASH_Lock();
+			//HAL_FLASH_Lock();
 			return FLASH_ERRROR;
 		}
+		SYSLOG("WRITE OK.Offs = %d\n", Offs);
 		Offs += sizeof(Buff);
 	}
-	HAL_FLASH_Lock();
+	//HAL_FLASH_Lock();
 	return FLASH_OK;
 }
 
