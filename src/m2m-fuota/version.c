@@ -1,7 +1,5 @@
 #include "version.h"
 
-#define M_NUN 0xAA55
-#define M_STR "VERSION"
 
 const VER_STRUCT __ver_struct __attribute__ ((section(".version"))) =
 {
@@ -28,7 +26,7 @@ VER_RESULT VersionRead(uint32_t StartAddr, uint32_t SizePart, INFO_STRUCT *INFO)
 	for(uint32_t addr = StartAddr; addr < (StartAddr + SizePart) ; addr++)
 	{
 	  tmp = (VER_STRUCT*)addr;
-	  if( (tmp->num == M_NUN) && (strncmp((char*)tmp->str,M_STR,8) == 0))
+	  if ((tmp->num == M_NUN) && (strncmp((char*)tmp->str, M_STR, 8) == 0))
 	  {
 	    INFO->dev_id = tmp->info.dev_id;
 	    INFO->version[0] = tmp->info.version[0];

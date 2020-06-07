@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define M_NUN 0xAA55
+#define M_STR "VERSION"
+
 typedef enum
 {
 	VER_NOT,

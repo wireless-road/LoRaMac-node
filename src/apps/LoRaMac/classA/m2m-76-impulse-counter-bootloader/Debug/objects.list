@@ -46,6 +46,7 @@
 "m2m-fuota/AT25SF041.o"
 "m2m-fuota/LiteDisk.o"
 "m2m-fuota/LiteDiskDefs.o"
+"m2m-fuota/flash.o"
 "m2m-fuota/syslog.o"
 "m2m-fuota/version.o"
 "m2m-fuota/xprintf.o"

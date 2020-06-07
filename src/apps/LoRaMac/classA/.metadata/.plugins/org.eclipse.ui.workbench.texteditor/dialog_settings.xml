@@ -2,12 +2,13 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="AT25AT25SFWaitReady" key="selection"/>
+		<item value="syslog" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
+			<item value="SYSLOG"/>
 			<item value="AT25AT25SFWaitReady"/>
 			<item value="SX1276WriteBuffer"/>
 			<item value="SX1276WriteFifo"/>
@@ -15,7 +16,6 @@
 			<item value="MacStatusStrings"/>
 			<item value="putc"/>
 			<item value="main"/>
-			<item value="EventInfoStatusStrings"/>
 		</list>
 		<list key="replacehistory">
 		</list>

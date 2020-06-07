@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include "stm32l0xx.h"
 #include "utilities.h"
 #include "board.h"
@@ -18,6 +19,7 @@
 #include "syslog.h"
 #include "LiteDisk.h"
 #include "LiteDiskDefs.h"
+#include "flash.h"
 
 //******************************************************************************
 // Pre-processor Definitions
@@ -136,12 +138,14 @@ static bool BootloaderDiskInit(void)
 //******************************************************************************
 // Verify Destination Application
 //******************************************************************************
-static BOOT_RESULT BootloaderCheckApp(void)
+static BOOT_RESULT BootloaderCheckApp(INFO_STRUCT *InfoApp)
 {
 	uint32_t CrcAppRead, CrcAppCalc;
 	uint32_t *pCrc;
 	VER_RESULT Res;
 	INFO_STRUCT Info;
+
+	memset(InfoApp, 0, sizeof(INFO_STRUCT));
 	/* Check app crc */
 	pCrc = (uint32_t*)(APP_START_ADDRESS + APP_SIZE - 4);
 	CrcAppCalc = crc32_app(0, (uint8_t*)(APP_START_ADDRESS), (APP_SIZE - 4));
@@ -158,25 +162,9 @@ static BOOT_RESULT BootloaderCheckApp(void)
 	{
 		return BOOT_FAIL;
 	}
+	*InfoApp = Info;
 	return BOOT_OK;
 }
-
-//******************************************************************************
-// Check for updates
-//******************************************************************************
-static BOOT_RESULT BootloaderCheckNeedUpdate(void)
-{
-	return BOOT_MISSING;
-}
-
-//******************************************************************************
-// Updates app
-//******************************************************************************
-static BOOT_RESULT BootloaderAppUpdate(void)
-{
-	return BOOT_OK;
-}
-
 
 //******************************************************************************
 // Start App
@@ -197,33 +185,38 @@ static void BootloaderStartApp(void)
 }
 
 //******************************************************************************
-// Load recovery
+// Get info  recovery
 //******************************************************************************
-static BOOT_RESULT BootloaderLoadRecovery(void)
+static bool BootloaderGetInfoFile(uint16_t FileId, INFO_STRUCT *Info)
 {
+	VER_STRUCT tmp;
 
-	return BOOT_OK;
+	for(uint32_t position = 0; position < APP_SIZE; position += 4)
+	{
+		LiteDiskFileRead(FileId, position, sizeof(VER_STRUCT), (uint8_t*)&tmp);
+		if((tmp.num == M_NUN) && (strncmp((char*)tmp.str, M_STR, 8) == 0))
+		{
+			*Info = tmp.info;
+			return true;
+		}
+	}
+	return false;
 }
 
 //******************************************************************************
-// Check recovery
+// Check crc file
 //******************************************************************************
-static BOOT_RESULT BootloaderCheckRecovery(void)
+static bool BootloaderCheckCrcFile(uint16_t FileId)
 {
 	uint32_t CrcCalc = 0;
 	uint32_t CrcRead;
 	uint8_t Buff[256];
 	uint32_t AmountRead;
 	int Result;
-
-	if (isDiskInit == false)
-	{
-		return BOOT_MISSING;
-	}
 	for (AmountRead =0; AmountRead < APP_SIZE; ) //
 	{
-		Result = LiteDiskFileRead(RECOVERY_FILE_ID, AmountRead, 256, Buff);
-		if(Result == 256)
+		Result = LiteDiskFileRead(RECOVERY_FILE_ID, AmountRead, sizeof(Buff), Buff);
+		if(Result == sizeof(Buff))
 		{
 			AmountRead += Result;
 			if (AmountRead < APP_SIZE)
@@ -239,11 +232,36 @@ static BOOT_RESULT BootloaderCheckRecovery(void)
 		else
 		{
 			SYSLOG("RESULT READ RECOVERY ERR=%d. AmountRead = %d\n", Result, AmountRead);
-			return BOOT_FAIL;
+			return false;
 		}
 	}
 	SYSLOG("RECOVERY CRC_CALC=0x%08X, CRC_READ=0x%08X\n", CrcCalc, CrcRead);
-	if (CrcCalc != CrcRead) return BOOT_FAIL;
+	return (CrcCalc == CrcRead);
+}
+
+//******************************************************************************
+// Check recovery
+//******************************************************************************
+static BOOT_RESULT BootloaderCheckRecovery(void)
+{
+	INFO_STRUCT Info;
+	bool ResGetInfo;
+
+	if (isDiskInit == false)
+	{
+		return BOOT_MISSING;
+	}
+	SYSLOG("CHECK RECOVERY\n");
+	if (BootloaderCheckCrcFile(RECOVERY_FILE_ID) == false)
+	{
+		return BOOT_FAIL;
+	}
+	ResGetInfo = BootloaderGetInfoFile(RECOVERY_FILE_ID, &Info);
+	SYSLOG("Recovery get info res = %d, DevID=%d, Version: %d.%d.%d", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
+	if ((!ResGetInfo) || (Info.dev_id != DEV_ID))
+	{
+		return BOOT_FAIL;
+	}
 	return BOOT_OK;
 }
 
@@ -257,15 +275,20 @@ static BOOT_RESULT BootloaderSaveRecovery(void)
 	uint8_t *pData;
 	uint8_t Buff[256];
 
+	if (isDiskInit == false)
+	{
+		return BOOT_MISSING;
+	}
+	SYSLOG("SAVE RECOVERY\n");
 	pData = (uint8_t*)(APP_START_ADDRESS);
 	Result = LiteDiskFileClear(RECOVERY_FILE_ID); // Очищаем файл
 	SYSLOG("CLEAR RECOVERY SIZE=%d\n", Result);
 	if(Result < 0) return BOOT_FAIL;
 	for(AmountWrited = 0; AmountWrited < APP_SIZE;)//
 	{
-		memcpy(Buff, &pData[AmountWrited], 256);
-		Result = LiteDiskFileWrite(RECOVERY_FILE_ID, AmountWrited, 256, Buff);
-		if(Result == 256)
+		memcpy(Buff, &pData[AmountWrited], sizeof(Buff));
+		Result = LiteDiskFileWrite(RECOVERY_FILE_ID, AmountWrited, sizeof(Buff), Buff);
+		if(Result == sizeof(Buff))
 		{
 			AmountWrited += Result;
 		}
@@ -276,6 +299,61 @@ static BOOT_RESULT BootloaderSaveRecovery(void)
 		}
 	}
 	SYSLOG("RESULT WRITE RECOVERY COMPLEATE SIZE=%d\n", AmountWrited);
+	return BOOT_OK;
+}
+
+//******************************************************************************
+// Load recovery
+//******************************************************************************
+static BOOT_RESULT BootloaderLoadRecovery(void)
+{
+	if (FlashProgramApp(APP_START_ADDRESS, APP_SIZE, RECOVERY_FILE_ID) != FLASH_OK)
+	{
+		return BOOT_FAIL;
+	}
+	return BOOT_OK;
+}
+
+//******************************************************************************
+// Check for updates
+//******************************************************************************
+static BOOT_RESULT BootloaderCheckUpdate(INFO_STRUCT *InfoApp)
+{
+	INFO_STRUCT Info;
+	bool ResGetInfo;
+
+	if (isDiskInit == false)
+	{
+		return BOOT_MISSING;
+	}
+	SYSLOG("CHECK RECOVERY\n");
+	if (BootloaderCheckCrcFile(UPDATE_FILE_ID) == false)
+	{
+		SYSLOG("Update file bad crc\n");
+		return BOOT_MISSING;
+	}
+	ResGetInfo = BootloaderGetInfoFile(UPDATE_FILE_ID, &Info);
+	SYSLOG("Update get info res = %d, DevID=%d, Version: %d.%d.%d", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
+	if ((!ResGetInfo) || (Info.dev_id != DEV_ID)) // Не нашли информацию или не совпадает Id
+	{
+		return BOOT_MISSING;
+	}
+	if ((Info.version[0] == InfoApp->version[0]) && (Info.version[1] == InfoApp->version[1]) && (Info.version[2] == InfoApp->version[2]))
+	{
+		return BOOT_MISSING;
+	}
+	return BOOT_OK;
+}
+
+//******************************************************************************
+// Updates app
+//******************************************************************************
+static BOOT_RESULT BootloaderAppUpdate(void)
+{
+	if (FlashProgramApp(APP_START_ADDRESS, APP_SIZE, UPDATE_FILE_ID) != FLASH_OK)
+	{
+		return BOOT_FAIL;
+	}
 	return BOOT_OK;
 }
 
@@ -306,7 +384,7 @@ int main( void )
 		switch (Step)
 		{
 		case BOOT_STEP_CHECK_APP:
-			Result = BootloaderCheckApp();
+			Result = BootloaderCheckApp(&Info);
 			if (Result == BOOT_OK)
 			{
 				if (BootloaderCheckRecovery() == BOOT_FAIL)
@@ -322,15 +400,23 @@ int main( void )
 			}
 			break;
 		case BOOT_STEP_CHECK_UPDATE:
-			Result = BootloaderCheckNeedUpdate();
+			Result = BootloaderCheckUpdate(&Info);
 			if (Result == BOOT_OK) Step = BOOT_STEP_UPDATE;
 			else Step = BOOT_STEP_START_APP;
 			break;
 		case BOOT_STEP_UPDATE:
-			Result = BootloaderAppUpdate();
-			if (Result == BOOT_OK) Step = BOOT_STEP_CHECK_APP;
-			else if (Result == BOOT_MISSING) Step = BOOT_STEP_START_APP;
-			else Step = BOOT_STEP_RECOVERY;
+			Result = BootloaderSaveRecovery();
+			if (Result != BOOT_OK)
+			{
+				SYSLOG("SAVE RECOVERY ERROR. UPDATE MISSING. START APP\n");
+				Step = BOOT_STEP_START_APP;
+			}
+			else
+			{
+				Result = BootloaderAppUpdate();
+				if (Result == BOOT_OK) Step = BOOT_STEP_CHECK_APP;
+				else Step = BOOT_STEP_RECOVERY;
+			}
 			break;
 		case BOOT_STEP_START_APP:
 			SYSLOG("%s %s", BootStepString[Step], BootStepResult[BOOT_OK]);
@@ -340,7 +426,9 @@ int main( void )
 			BoardResetMcu();
 			break;
 		case BOOT_STEP_RECOVERY:
-			Step = BOOT_STEP_RELOAD;
+			Result = BootloaderLoadRecovery();
+			if (Result == BOOT_OK) Step = BOOT_STEP_RELOAD;
+			else Step = BOOT_STEP_ERROR;
 			break;
 		default:
 			break;
