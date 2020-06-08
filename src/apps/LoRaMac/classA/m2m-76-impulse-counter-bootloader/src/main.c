@@ -16,10 +16,13 @@
 #include "board.h"
 #include "gpio.h"
 #include "version.h"
-#include "syslog.h"
 #include "LiteDisk.h"
 #include "LiteDiskDefs.h"
 #include "flash.h"
+//#define LOG_MODULE  LOGM_ACC
+#define LOG_LEVEL   MAX_LOG_LEVEL_DEBUG
+#define LOG_MODULE   "BOOT:"
+#include "syslog.h"
 
 //******************************************************************************
 // Pre-processor Definitions
@@ -68,9 +71,9 @@ static const char* BootStepString[] =
 
 static const char* BootStepResult[] =
 {
-	"OK\n",
-	"FAIL\n",
-	"MISSING\n",
+	"OK",
+	"FAIL",
+	"MISSING",
 };
 static bool isDiskInit;
 
@@ -150,14 +153,14 @@ static BOOT_RESULT BootloaderCheckApp(INFO_STRUCT *InfoApp)
 	pCrc = (uint32_t*)(APP_START_ADDRESS + APP_SIZE - 4);
 	CrcAppCalc = crc32_app(0, (uint8_t*)(APP_START_ADDRESS), (APP_SIZE - 4));
 	CrcAppRead = *pCrc;
-	SYSLOG("CRC:CALC=0x%08X,READ=0x%08X\n", CrcAppCalc, CrcAppRead);
+	SYSLOG_D("CRC:CALC=0x%08X,READ=0x%08X", CrcAppCalc, CrcAppRead);
 	if (CrcAppCalc != CrcAppRead)
 	{
 		return BOOT_FAIL;
 	}
 	/* Check app id */
 	Res = VersionRead(APP_START_ADDRESS, APP_SIZE, &Info);
-	SYSLOG("VER:Res=%d, DevId=%d, AppVer:%d.%d.%d\n", Res, Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
+	SYSLOG_I("VER:Res=%d, DevId=%d, AppVer:%d.%d.%d", Res, Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
 	if ((Res == VER_NOT) || (Info.dev_id != DEV_ID))
 	{
 		return BOOT_FAIL;
@@ -231,11 +234,11 @@ static bool BootloaderCheckCrcFile(uint16_t FileId)
 		}
 		else
 		{
-			SYSLOG("RESULT READ RECOVERY ERR=%d. AmountRead = %d\n", Result, AmountRead);
+			SYSLOG_E("RESULT READ RECOVERY ERR=%d. AmountRead = %d", Result, AmountRead);
 			return false;
 		}
 	}
-	SYSLOG("RECOVERY CRC_CALC=0x%08X, CRC_READ=0x%08X\n", CrcCalc, CrcRead);
+	SYSLOG_I("RECOVERY CRC_CALC=0x%08X, CRC_READ=0x%08X", CrcCalc, CrcRead);
 	return (CrcCalc == CrcRead);
 }
 
@@ -251,13 +254,13 @@ static BOOT_RESULT BootloaderCheckRecovery(void)
 	{
 		return BOOT_MISSING;
 	}
-	SYSLOG("CHECK RECOVERY\n");
+	SYSLOG_I("CHECK RECOVERY");
 	if (BootloaderCheckCrcFile(RECOVERY_FILE_ID) == false)
 	{
 		return BOOT_FAIL;
 	}
 	ResGetInfo = BootloaderGetInfoFile(RECOVERY_FILE_ID, &Info);
-	SYSLOG("Recovery get info res = %d, DevID=%d, Version: %d.%d.%d", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
+	SYSLOG_I("Recovery get info res = %d, DevID=%d, Version: %d.%d.%d", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
 	if ((!ResGetInfo) || (Info.dev_id != DEV_ID))
 	{
 		return BOOT_FAIL;
@@ -279,10 +282,10 @@ static BOOT_RESULT BootloaderSaveRecovery(void)
 	{
 		return BOOT_MISSING;
 	}
-	SYSLOG("SAVE RECOVERY\n");
+	SYSLOG_I("SAVE RECOVERY");
 	pData = (uint8_t*)(APP_START_ADDRESS);
 	Result = LiteDiskFileClear(RECOVERY_FILE_ID); // Очищаем файл
-	SYSLOG("CLEAR RECOVERY SIZE=%d\n", Result);
+	SYSLOG_I("CLEAR RECOVERY SIZE=%d", Result);
 	if(Result < 0) return BOOT_FAIL;
 	for(AmountWrited = 0; AmountWrited < APP_SIZE;)//
 	{
@@ -294,11 +297,11 @@ static BOOT_RESULT BootloaderSaveRecovery(void)
 		}
 		else
 		{
-			SYSLOG("RESULT WRITE RECOVERY ERR=%d. AmountWrited = %d\n", Result, AmountWrited);
+			SYSLOG_E("RESULT WRITE RECOVERY ERR=%d. AmountWrited = %d", Result, AmountWrited);
 			return BOOT_FAIL;
 		}
 	}
-	SYSLOG("RESULT WRITE RECOVERY COMPLEATE SIZE=%d\n", AmountWrited);
+	SYSLOG_I("RESULT WRITE RECOVERY COMPLEATE SIZE=%d", AmountWrited);
 	return BOOT_OK;
 }
 
@@ -326,14 +329,14 @@ static BOOT_RESULT BootloaderCheckUpdate(INFO_STRUCT *InfoApp)
 	{
 		return BOOT_MISSING;
 	}
-	SYSLOG("CHECK RECOVERY\n");
+	SYSLOG_I("CHECK RECOVERY");
 	if (BootloaderCheckCrcFile(UPDATE_FILE_ID) == false)
 	{
-		SYSLOG("Update file bad crc\n");
+		SYSLOG_W("Update file bad CRC");
 		return BOOT_MISSING;
 	}
 	ResGetInfo = BootloaderGetInfoFile(UPDATE_FILE_ID, &Info);
-	SYSLOG("Update get info res = %d, DevID=%d, Version: %d.%d.%d", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
+	SYSLOG_I("Update get info res = %d, DevID=%d, Version: %d.%d.%d", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
 	if ((!ResGetInfo) || (Info.dev_id != DEV_ID)) // Не нашли информацию или не совпадает Id
 	{
 		return BOOT_MISSING;
@@ -374,9 +377,9 @@ int main( void )
 	BootloaderInit(); // Инициализируем железо
 	SYSLOG_INIT(boot_putchar); // Инициализируем вывод логов
 	VersionRead(BOOT_START_ADDRESS, BOOT_SIZE, &Info);
-	SYSLOG("BOOT:DevId=%d, BootVer:%d.%d.%d\n", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
+	SYSLOG_I("BOOT:DevId=%d, BootVer:%d.%d.%d", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
 	isDiskInit = BootloaderDiskInit();
-	SYSLOG("Result init disk = %d\n", isDiskInit);
+	SYSLOG_I("Result init disk = %d", isDiskInit);
 
 	while(Step != BOOT_STEP_ERROR)
 	{
@@ -389,8 +392,8 @@ int main( void )
 			{
 				if (BootloaderCheckRecovery() == BOOT_FAIL)
 				{
-					SYSLOG("Recovery file is damaged\n");
-					SYSLOG("Write recovery result = %d\n", BootloaderSaveRecovery());
+					SYSLOG_W("Recovery file is damaged");
+					SYSLOG_I("Write recovery result = %d", BootloaderSaveRecovery());
 				}
 				Step = BOOT_STEP_CHECK_UPDATE;
 			}
@@ -408,7 +411,7 @@ int main( void )
 			Result = BootloaderSaveRecovery();
 			if (Result != BOOT_OK)
 			{
-				SYSLOG("SAVE RECOVERY ERROR. UPDATE MISSING. START APP\n");
+				SYSLOG_E("SAVE RECOVERY ERROR. UPDATE MISSING. START APP\n");
 				Step = BOOT_STEP_START_APP;
 			}
 			else
@@ -419,7 +422,7 @@ int main( void )
 			}
 			break;
 		case BOOT_STEP_START_APP:
-			SYSLOG("%s %s", BootStepString[Step], BootStepResult[BOOT_OK]);
+			SYSLOG_I("%s %s", BootStepString[Step], BootStepResult[BOOT_OK]);
 			BootloaderStartApp();
 			break;
 		case BOOT_STEP_RELOAD:
@@ -428,7 +431,7 @@ int main( void )
 		case BOOT_STEP_RECOVERY:
 			if (BootloaderCheckRecovery() == BOOT_FAIL)
 			{
-				SYSLOG("Recovery file is damaged\n");
+				SYSLOG_E("Recovery file is damaged");
 				Step = BOOT_STEP_ERROR;
 			}
 			Result = BootloaderLoadRecovery();
@@ -438,11 +441,11 @@ int main( void )
 		default:
 			break;
 		}
-		SYSLOG("BOOT:%s-%s", BootStepString[CurStep], BootStepResult[Result]);
+		SYSLOG_I("%s=%s", BootStepString[CurStep], BootStepResult[Result]);
 	}
 	// ERROS STATE
 	while(1)
 	{
-		SYSLOG("FATAL ERROR!!!!\n");
+		SYSLOG_E("FATAL ERROR!!!!\n");
 	}
 }

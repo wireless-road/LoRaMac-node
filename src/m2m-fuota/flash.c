@@ -13,10 +13,12 @@
 #include "board.h"
 #include "gpio.h"
 #include "version.h"
-#include "syslog.h"
 #include "LiteDisk.h"
 #include "LiteDiskDefs.h"
 #include "flash.h"
+#define LOG_LEVEL   MAX_LOG_LEVEL_INFO
+#define LOG_MODULE   "FLASH:"
+#include "syslog.h"
 
 //******************************************************************************
 // Pre-processor Definitions
@@ -57,10 +59,10 @@ static bool FlashErase(uint32_t StartAddr, uint32_t Size)
 	Result = HAL_FLASHEx_Erase(&EraseInit, &PageError);
 	if (Result != HAL_OK)
 	{
-		SYSLOG("ERASE ERROR. PageError=%d\n", PageError);
+		SYSLOG_E("ERASE ERROR. PageError=%d", PageError);
 		return false;
 	}
-	SYSLOG("ERASE OK. PageError=%d\n", PageError);
+	SYSLOG_I("ERASE OK. PageError=%d", PageError);
 	return true;
 }
 
@@ -109,7 +111,7 @@ FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size, uint16_t FileID)
 	// Erase flash
 	if (FlashErase(StartAddr, Size) != true)
 	{
-		SYSLOG("ERROR ERASE FLASH\n");
+		SYSLOG_E("ERROR ERASE FLASH");
 		//HAL_FLASH_Lock();
 		return FLASH_ERRROR;
 	};
@@ -119,17 +121,17 @@ FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size, uint16_t FileID)
 		Result = LiteDiskFileRead(FileID, Offs, sizeof(Buff), Buff);
 		if (Result != sizeof(Buff))
 		{
-			SYSLOG("ERROR READ IMAGE.FileID = %d,Offs = %d\n", FileID ,Offs);
+			SYSLOG_E("ERROR READ IMAGE.FileID = %d,Offs = %d", FileID ,Offs);
 			//HAL_FLASH_Lock();
 			return FLASH_ERRROR;
 		}
 		if (FlashWrite((StartAddr + Offs), sizeof(Buff), Buff) != true)
 		{
-			SYSLOG("ERROR WRITE IMAGE.Addr = 0x%X\n", (StartAddr + Offs));
+			SYSLOG_E("ERROR WRITE IMAGE.Addr = 0x%08X", (StartAddr + Offs));
 			//HAL_FLASH_Lock();
 			return FLASH_ERRROR;
 		}
-		SYSLOG("WRITE OK.Offs = %d\n", Offs);
+		SYSLOG_D("WRITE OK.Offs = %d", Offs);
 		Offs += sizeof(Buff);
 	}
 	//HAL_FLASH_Lock();
