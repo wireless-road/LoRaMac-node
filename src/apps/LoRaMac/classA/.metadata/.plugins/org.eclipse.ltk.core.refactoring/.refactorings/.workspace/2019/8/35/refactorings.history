@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">&#x0A;<refactoring comment="Rename resource &apos;NucleoL073&apos; to &apos;NucleoL073_dev&apos;" description="Rename resource &apos;NucleoL073&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="/NucleoL073" name="NucleoL073_dev" stamp="1566852722837" updateReferences="true"/>&#x0A;<refactoring comment="Delete resource &apos;m2m-tele-gps&apos;" deleteContents="true" description="Delete resource &apos;m2m-tele-gps&apos;" element1="/m2m-tele-gps" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1566935261070"/>
-</session>
