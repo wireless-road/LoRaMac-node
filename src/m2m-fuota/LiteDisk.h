@@ -10,6 +10,7 @@
 //******************************************************************************
 
 #include <stdint.h>
+#include <stdbool.h>
 
 //******************************************************************************
 // Pre-processor Definitions
@@ -74,6 +75,9 @@ extern "C"
 
 // Инициализация диска и упрощенной структуры хранения
 DRESULT LiteDiskInit(LT_DISK *Disk, void *DiskInitStr, LT_FILE *Table);
+
+// Проверка, что диск проинициализтрован
+bool LiteDiskIsInit(void);
 
 int LiteDiskFileClear(uint16_t FileID);
 int LiteDiskFileWrite(uint16_t FileID, uint32_t Offs, uint32_t Size, uint8_t *Data);

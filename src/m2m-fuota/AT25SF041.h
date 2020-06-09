@@ -32,7 +32,6 @@ typedef struct
 {
     Gpio_t      Nss;
     Gpio_t      Power;
-    Gpio_t		NssRadio;
     Spi_t       *Spi;
 } at25sf041_t;
 

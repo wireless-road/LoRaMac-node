@@ -31,6 +31,8 @@
 #include "board-config.h"
 #include "lpm-board.h"
 #include "rtc-board.h"
+#include "LiteDisk.h"
+#include "LiteDiskDefs.h"
 
 #if defined( SX1261MBXBAS ) || defined( SX1262MBXCAS ) || defined( SX1262MBXDAS )
     #include "sx126x-board.h"
@@ -55,6 +57,7 @@ Gpio_t Led1;
 Gpio_t Led2;
 #ifdef BOOTLOADER
 Spi_t Spi;
+Gpio_t RadioNSS;
 #endif
 
 /*
@@ -134,7 +137,7 @@ void BoardCriticalSectionEnd( uint32_t *mask )
 
 void BoardInitPeriph( void )
 {
-
+	LiteDiskInit(&DISK, &SX1276.Spi, &FILE_TABLE);
 }
 
 #include <nmea_gps.h>
@@ -187,11 +190,13 @@ void BoardInitMcu( void )
     SpiInit( &SX1272.Spi, SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, NC );
     SX1272IoInit( );
 #elif defined( SX1276MB1LAS ) || defined( SX1276MB1MAS )
-    SpiInit( &SX1276.Spi, SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, RADIO_NSS );
+    SpiInit( &SX1276.Spi, SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, NC );
+    GpioInit( &SX1276.Spi.Nss, RADIO_NSS, PIN_OUTPUT, PIN_PUSH_PULL, PIN_PULL_UP, 1 );
     SX1276IoInit( );
 #endif
 #else
     SpiInit( &Spi, SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, NC );
+    GpioInit( &RadioNSS, RADIO_NSS, PIN_OUTPUT, PIN_PUSH_PULL, PIN_PULL_UP, 1 );
 #endif
 
     if( McuInitialized == false )

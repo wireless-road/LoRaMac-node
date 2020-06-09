@@ -28,6 +28,7 @@
 
 static LT_DISK *IoDisk = NULL;
 static LT_FILE *FileTable = NULL;
+static isInit = false;
 
 //******************************************************************************
 // Public Data
@@ -75,6 +76,7 @@ DRESULT LiteDiskInit(LT_DISK *Disk, void *DiskInitStr, LT_FILE *Table)
 	}
 	IoDisk = Disk;
 	FileTable =	Table;
+	isInit = true;
 	return DRESULT_OK;
 }
 
@@ -180,4 +182,13 @@ int LiteDiskFileRead(uint16_t FileID, uint32_t Offs, uint32_t Size, uint8_t *Dat
 	}
 	return tRead;
 }
+
+//******************************************************************************
+// Проверка, что диск проинициализтрован
+//******************************************************************************
+bool LiteDiskIsInit(void)
+{
+	return isInit;
+}
+
 

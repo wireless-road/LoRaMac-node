@@ -197,7 +197,6 @@ int at25sf041_init(void *InitStr)
 	if (!InitStr) return DRESULT_PARERR;
 	GpioInit( &at25sf041.Nss, FLASH_DISK_NSS, PIN_OUTPUT, PIN_PUSH_PULL, PIN_PULL_UP, 1 );
 	GpioInit( &at25sf041.Power, FLASH_DISK_POWER, PIN_OUTPUT, PIN_PUSH_PULL, PIN_PULL_UP, 1 );
-	GpioInit( &at25sf041.NssRadio, RADIO_NSS, PIN_OUTPUT, PIN_PUSH_PULL, PIN_PULL_UP, 1 );
 	at25sf041.Spi = (Spi_t*)InitStr;
 	DelayMs(100);
 	/*  Resume from Deep Power-Down */
