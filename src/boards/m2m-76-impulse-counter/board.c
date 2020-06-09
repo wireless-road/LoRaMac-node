@@ -137,7 +137,11 @@ void BoardCriticalSectionEnd( uint32_t *mask )
 
 void BoardInitPeriph( void )
 {
+#ifndef BOOTLOADER
 	LiteDiskInit(&DISK, &SX1276.Spi, &FILE_TABLE);
+#else
+	LiteDiskInit(&DISK, &Spi, &FILE_TABLE);
+#endif
 }
 
 #include <nmea_gps.h>

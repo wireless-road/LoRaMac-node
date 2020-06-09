@@ -137,10 +137,10 @@ static BOOT_RESULT BootloaderCheckApp(INFO_STRUCT *InfoApp)
 	CrcAppCalc = crc32_app(0, (uint8_t*)(APP_START_ADDRESS), (APP_SIZE - 4));
 	CrcAppRead = *pCrc;
 	SYSLOG_D("CRC:CALC=0x%08X,READ=0x%08X", CrcAppCalc, CrcAppRead);
-	if (CrcAppCalc != CrcAppRead)
+	/*if (CrcAppCalc != CrcAppRead)
 	{
 		return BOOT_FAIL;
-	}
+	}*/
 	/* Check app id */
 	Res = VersionRead(APP_START_ADDRESS, APP_SIZE, &Info);
 	SYSLOG_I("VER:Res=%d, DevId=%d, AppVer:%d.%d.%d", Res, Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
