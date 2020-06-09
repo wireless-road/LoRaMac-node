@@ -75,7 +75,6 @@ static const char* BootStepResult[] =
 	"FAIL",
 	"MISSING",
 };
-static bool isDiskInit;
 
 //******************************************************************************
 // Private Data
@@ -84,10 +83,6 @@ static bool isDiskInit;
 //******************************************************************************
 // Public Data
 //******************************************************************************
-
-#ifdef BOOTLOADER
-extern Spi_t Spi;
-#endif
 
 //******************************************************************************
 // Private Functions
@@ -122,21 +117,9 @@ static uint32_t crc32_app(uint32_t crc, const uint8_t *buf, uint32_t len)
 static void BootloaderInit(void)
 {
     BoardInitMcu( );
+    SYSLOG_INIT(boot_putchar); // Инициализируем вывод логов
     BoardInitPeriph( );
 }
-
-//******************************************************************************
-// dISK initialization
-//******************************************************************************
-static bool BootloaderDiskInit(void)
-{
-	if (LiteDiskInit(&DISK, &Spi, &FILE_TABLE) != DRESULT_OK)
-	{
-		return false;
-	}
-	return true;
-}
-
 
 //******************************************************************************
 // Verify Destination Application
@@ -250,7 +233,7 @@ static BOOT_RESULT BootloaderCheckRecovery(void)
 	INFO_STRUCT Info;
 	bool ResGetInfo;
 
-	if (isDiskInit == false)
+	if (LiteDiskIsInit() == false)
 	{
 		return BOOT_MISSING;
 	}
@@ -278,7 +261,7 @@ static BOOT_RESULT BootloaderSaveRecovery(void)
 	uint8_t *pData;
 	uint8_t Buff[256];
 
-	if (isDiskInit == false)
+	if (LiteDiskIsInit() == false)
 	{
 		return BOOT_MISSING;
 	}
@@ -325,7 +308,7 @@ static BOOT_RESULT BootloaderCheckUpdate(INFO_STRUCT *InfoApp)
 	INFO_STRUCT Info;
 	bool ResGetInfo;
 
-	if (isDiskInit == false)
+	if (LiteDiskIsInit() == false)
 	{
 		return BOOT_MISSING;
 	}
@@ -375,11 +358,9 @@ int main( void )
 	INFO_STRUCT Info;
 
 	BootloaderInit(); // Инициализируем железо
-	SYSLOG_INIT(boot_putchar); // Инициализируем вывод логов
 	VersionRead(BOOT_START_ADDRESS, BOOT_SIZE, &Info);
 	SYSLOG_I("BOOT:DevId=%d, BootVer:%d.%d.%d", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
-	isDiskInit = BootloaderDiskInit();
-	SYSLOG_I("Result init disk = %d", isDiskInit);
+	SYSLOG_I("Disk is init = %d", LiteDiskIsInit());
 
 	while(Step != BOOT_STEP_ERROR)
 	{
