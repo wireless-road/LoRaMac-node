@@ -49,27 +49,64 @@
 
 #if (LOG_LEVEL >= MAX_LOG_LEVEL_ERROR)
 #define SYSLOG_E(FORMAT, ...) do {xputs("E:"); xputs(LOG_MODULE); xprintf(FORMAT, ##__VA_ARGS__); xputc('\n'); } while (0)
+#define SYSDUMP_E(NAME, BUFFER, LENGTH) \
+	do {								\
+		xputs("E:"); 					\
+		xputs(LOG_MODULE); 				\
+		xputs(NAME); 					\
+		wsysdump(BUFFER, LENGTH);		\
+		xputc('\n'); 					\
+	} while (0)
 #else
 #define SYSLOG_E(FORMAT, ...)
+#define SYSDUMP_E(NAME, BUFFER, LENGTH)
 #endif
 
 
 #if (LOG_LEVEL >= MAX_LOG_LEVEL_WARNING)
 #define SYSLOG_W(FORMAT, ...) do {xputs("W:"); xputs(LOG_MODULE); xprintf(FORMAT, ##__VA_ARGS__); xputc('\n'); } while (0)
+#define SYSDUMP_W(NAME, BUFFER, LENGTH) \
+	do {								\
+		xputs("W:"); 					\
+		xputs(LOG_MODULE); 				\
+		xputs(NAME); 					\
+		wsysdump(BUFFER, LENGTH);		\
+		xputc('\n'); 					\
+	} while (0)
 #else
 #define SYSLOG_W(FORMAT, ...)
+#define SYSDUMP_W(NAME, BUFFER, LENGTH)
 #endif
 
 #if (LOG_LEVEL >= MAX_LOG_LEVEL_INFO)
 #define SYSLOG_I(FORMAT, ...) do {xputs("I:"); xputs(LOG_MODULE); xprintf(FORMAT, ##__VA_ARGS__); xputc('\n'); } while (0)
+#define SYSDUMP_I(NAME, BUFFER, LENGTH) \
+	do {								\
+		xputs("I:"); 					\
+		xputs(LOG_MODULE); 				\
+		xputs(NAME); 					\
+		wsysdump(BUFFER, LENGTH);		\
+		xputc('\n'); 					\
+	} while (0)
+
 #else
 #define SYSLOG_I(FORMAT, ...)
+#define SYSDUMP_I(NAME, BUFFER, LENGTH)
 #endif
 
 #if (LOG_LEVEL >= MAX_LOG_LEVEL_DEBUG)
 #define SYSLOG_D(FORMAT, ...) do {xputs("D:"); xputs(LOG_MODULE); xprintf(FORMAT, ##__VA_ARGS__); xputc('\n'); } while (0)
+#define SYSDUMP_D(NAME, BUFFER, LENGTH) \
+	do {								\
+		xputs("D:"); 					\
+		xputs(LOG_MODULE); 				\
+		xputs(NAME); 					\
+		wsysdump(BUFFER, LENGTH);		\
+		xputc('\n'); 					\
+	} while (0)
 #else
 #define SYSLOG_D(FORMAT, ...)
+#define SYSDUMP_D(NAME, BUFFER, LENGTH)
 #endif
 
 #else
@@ -106,6 +143,8 @@ extern "C"
 //******************************************************************************
 // Public Function Prototypes
 //******************************************************************************
+
+void wsysdump(const void* buff, size_t len);
   
 #undef EXTERN
 #ifdef __cplusplus

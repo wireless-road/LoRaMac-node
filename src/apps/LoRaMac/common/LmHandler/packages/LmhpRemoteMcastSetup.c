@@ -22,7 +22,7 @@
 #include "LmHandler.h"
 #include "LmhpRemoteMcastSetup.h"
 
-#define DBG_TRACE                                   1
+#define DBG_TRACE                                   0
 
 #if DBG_TRACE == 1
     #include <stdio.h>

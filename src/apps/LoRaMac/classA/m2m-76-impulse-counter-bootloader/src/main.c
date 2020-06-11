@@ -21,7 +21,7 @@
 #include "flash.h"
 //#define LOG_MODULE  LOGM_ACC
 #define LOG_LEVEL   MAX_LOG_LEVEL_DEBUG
-#define LOG_MODULE   "BOOT:"
+#define LOG_MODULE  "BOOT:"
 #include "syslog.h"
 
 //******************************************************************************
@@ -359,7 +359,7 @@ int main( void )
 
 	BootloaderInit(); // Инициализируем железо
 	VersionRead(BOOT_START_ADDRESS, BOOT_SIZE, &Info);
-	SYSLOG_I("BOOT:DevId=%d, BootVer:%d.%d.%d", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
+	SYSLOG_I("DevId=%d, BootVer:%d.%d.%d", Info.dev_id, Info.version[0], Info.version[1], Info.version[2]);
 	SYSLOG_I("Disk is init = %d", LiteDiskIsInit());
 
 	while(Step != BOOT_STEP_ERROR)
