@@ -539,7 +539,6 @@ static uint8_t FragDecoderRead( uint32_t addr, uint8_t *data, uint32_t size )
     	SYSLOG_E("ERROR");
         return -1; // Fail
     }
-
     for(uint32_t i = 0; i < size; i++ )
     {
         data[i] = UnfragmentedData[addr + i];
@@ -642,12 +641,15 @@ static void UplinkProcess( void )
                 else
                 {
                     AppDataBuffer[0] = randr( 0, 255 );
+                    AppDataBuffer[1] = randr( 0, 255 );
+                    AppDataBuffer[2] = randr( 0, 255 );
+                    AppDataBuffer[4] = randr( 0, 255 );
                     // Send random packet
                     LmHandlerAppData_t appData =
                     {
                         .Buffer = AppDataBuffer,
-                        .BufferSize = 1,
-                        .Port = 1
+                        .BufferSize = 4,
+                        .Port = 3,
                     };
                     status = LmHandlerSend( &appData, LORAMAC_HANDLER_UNCONFIRMED_MSG );
                 }
