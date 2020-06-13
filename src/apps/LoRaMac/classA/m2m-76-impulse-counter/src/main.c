@@ -38,6 +38,61 @@
 #define LOG_MODULE  "APP:"
 #include "syslog.h"
 
+/*!
+ * MAC status strings
+ */
+const char* MacStatusStrings[] =
+{
+    "OK",                            // LORAMAC_STATUS_OK
+    "Busy",                          // LORAMAC_STATUS_BUSY
+    "Service unknown",               // LORAMAC_STATUS_SERVICE_UNKNOWN
+    "Parameter invalid",             // LORAMAC_STATUS_PARAMETER_INVALID
+    "Frequency invalid",             // LORAMAC_STATUS_FREQUENCY_INVALID
+    "Datarate invalid",              // LORAMAC_STATUS_DATARATE_INVALID
+    "Frequency or datarate invalid", // LORAMAC_STATUS_FREQ_AND_DR_INVALID
+    "No network joined",             // LORAMAC_STATUS_NO_NETWORK_JOINED
+    "Length error",                  // LORAMAC_STATUS_LENGTH_ERROR
+    "Region not supported",          // LORAMAC_STATUS_REGION_NOT_SUPPORTED
+    "Skipped APP data",              // LORAMAC_STATUS_SKIPPED_APP_DATA
+    "Duty-cycle restricted",         // LORAMAC_STATUS_DUTYCYCLE_RESTRICTED
+    "No channel found",              // LORAMAC_STATUS_NO_CHANNEL_FOUND
+    "No free channel found",         // LORAMAC_STATUS_NO_FREE_CHANNEL_FOUND
+    "Busy beacon reserved time",     // LORAMAC_STATUS_BUSY_BEACON_RESERVED_TIME
+    "Busy ping-slot window time",    // LORAMAC_STATUS_BUSY_PING_SLOT_WINDOW_TIME
+    "Busy uplink collision",         // LORAMAC_STATUS_BUSY_UPLINK_COLLISION
+    "Crypto error",                  // LORAMAC_STATUS_CRYPTO_ERROR
+    "FCnt handler error",            // LORAMAC_STATUS_FCNT_HANDLER_ERROR
+    "MAC command error",             // LORAMAC_STATUS_MAC_COMMAD_ERROR
+    "ClassB error",                  // LORAMAC_STATUS_CLASS_B_ERROR
+    "Confirm queue error",           // LORAMAC_STATUS_CONFIRM_QUEUE_ERROR
+    "Multicast group undefined",     // LORAMAC_STATUS_MC_GROUP_UNDEFINED
+    "Unknown error",                 // LORAMAC_STATUS_ERROR
+};
+
+/*!
+ * MAC event info status strings.
+ */
+const char* EventInfoStatusStrings[] =
+{
+    "OK",                            // LORAMAC_EVENT_INFO_STATUS_OK
+    "Error",                         // LORAMAC_EVENT_INFO_STATUS_ERROR
+    "Tx timeout",                    // LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT
+    "Rx 1 timeout",                  // LORAMAC_EVENT_INFO_STATUS_RX1_TIMEOUT
+    "Rx 2 timeout",                  // LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT
+    "Rx1 error",                     // LORAMAC_EVENT_INFO_STATUS_RX1_ERROR
+    "Rx2 error",                     // LORAMAC_EVENT_INFO_STATUS_RX2_ERROR
+    "Join failed",                   // LORAMAC_EVENT_INFO_STATUS_JOIN_FAIL
+    "Downlink repeated",             // LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED
+    "Tx DR payload size error",      // LORAMAC_EVENT_INFO_STATUS_TX_DR_PAYLOAD_SIZE_ERROR
+    "Downlink too many frames loss", // LORAMAC_EVENT_INFO_STATUS_DOWNLINK_TOO_MANY_FRAMES_LOSS
+    "Address fail",                  // LORAMAC_EVENT_INFO_STATUS_ADDRESS_FAIL
+    "MIC fail",                      // LORAMAC_EVENT_INFO_STATUS_MIC_FAIL
+    "Multicast fail",                // LORAMAC_EVENT_INFO_STATUS_MULTICAST_FAIL
+    "Beacon locked",                 // LORAMAC_EVENT_INFO_STATUS_BEACON_LOCKED
+    "Beacon lost",                   // LORAMAC_EVENT_INFO_STATUS_BEACON_LOST
+    "Beacon not found"               // LORAMAC_EVENT_INFO_STATUS_BEACON_NOT_FOUND
+};
+
 #ifndef ACTIVE_REGION
 
 #warning "No active region defined, LORAMAC_REGION_EU868 will be used as default."
@@ -364,62 +419,122 @@ static void OnMacProcessNotify( void )
 
 static void OnNvmContextChange( LmHandlerNvmContextStates_t state )
 {
-	SYSLOG_I("NvmContextChange = %d", state);
+	SYSLOG_I("NvmContextChange:", state);
+    if( state == LORAMAC_HANDLER_NVM_STORE )
+    {
+    	SYSLOG_D( "###### ============ CTXS STORED ============ ######" );
+    }
+    else
+    {
+    	SYSLOG_D( "###### =========== CTXS RESTORED =========== ######" );
+    }
+    SYSLOG_I("======================================================\n");
 }
 
 static void OnNetworkParametersChange( CommissioningParams_t* params )
 {
-	SYSLOG_I("NetworkParametersChang");
-	SYSLOG_D("IsOtaaActivation = %d", params->IsOtaaActivation);
-	SYSDUMP_D("DevEui", &params->DevEui[0], sizeof(params->DevEui));
-	SYSDUMP_D("JoinEui", &params->JoinEui[0], sizeof(params->JoinEui));
-#if( ABP_ACTIVATION_LRWAN_VERSION == ABP_ACTIVATION_LRWAN_VERSION_V10x )
-	SYSDUMP_D("GenAppKey", &params->GenAppKey[0], sizeof(params->GenAppKey));
-#else
-	SYSDUMP_D("AppKey", &params->AppKey[0], sizeof(params->AppKey));
-#endif
-	SYSDUMP_D("NwkKey", &params->NwkKey[0], sizeof(params->NwkKey));
-	SYSLOG_D("NetworkId = %d", params->NetworkId);
-	SYSLOG_D("DevAddr = %d", params->DevAddr);
-#if ( OVER_THE_AIR_ACTIVATION == 0 )
-	SYSDUMP_D("FNwkSIntKey", &params->FNwkSIntKey[0], sizeof(params->FNwkSIntKey));
-	SYSDUMP_D("SNwkSIntKey", &params->SNwkSIntKey[0], sizeof(params->SNwkSIntKey));
-	SYSDUMP_D("NwkSEncKey", &params->NwkSEncKey[0], sizeof(params->NwkSEncKey));
-	SYSDUMP_D("AppSKey", &params->AppSKey[0], sizeof(params->AppSKey));
-#endif
+	SYSLOG_I("=========NetworkParametersChang==============");
+    SYSDUMP_D( "DevEui      :", params->DevEui, 8 );
+    SYSDUMP_D( "AppEui      :", params->JoinEui, 8 );
+    // For 1.0.x devices the AppKey corresponds to NwkKey
+    SYSDUMP_D( "AppKey      :", params->NwkKey, 16 );
+    SYSLOG_I("======================================================\n");
 }
 
 static void OnMacMcpsRequest( LoRaMacStatus_t status, McpsReq_t *mcpsReq )
 {
-	SYSLOG_I("MacMcpsRequest status = %d, type = %d", status, mcpsReq->Type);
+	SYSLOG_I( "###### =========== MCPS-Request ============ ######" );
+    switch( mcpsReq->Type )
+    {
+        case MCPS_CONFIRMED:
+        {
+        	SYSLOG_D( "######            MCPS_CONFIRMED             ######");
+            break;
+        }
+        case MCPS_UNCONFIRMED:
+        {
+        	SYSLOG_D( "######           MCPS_UNCONFIRMED            ######");
+            break;
+        }
+        case MCPS_PROPRIETARY:
+        {
+        	SYSLOG_D( "######           MCPS_PROPRIETARY            ######");
+            break;
+        }
+        default:
+        {
+        	SYSLOG_D( "######                MCPS_ERROR             ######");
+            break;
+        }
+    }
+    SYSLOG_D( "STATUS      : %s", MacStatusStrings[status] );
+    SYSLOG_I("======================================================\n");
 }
 
 static void OnMacMlmeRequest( LoRaMacStatus_t status, MlmeReq_t *mlmeReq )
 {
-	SYSLOG_I("MacMlmeRequest status = %d, type = %d", status, mlmeReq->Type);
+	   SYSLOG_I( "###### =========== MLME-Request ============ ######" );
+	   switch( mlmeReq->Type )
+	    {
+	        case MLME_JOIN:
+	        {
+	        	SYSLOG_D( "######               MLME_JOIN               ######");
+	            break;
+	        }
+	        case MLME_LINK_CHECK:
+	        {
+	        	SYSLOG_D( "######            MLME_LINK_CHECK            ######");
+	            break;
+	        }
+	        case MLME_DEVICE_TIME:
+	        {
+	        	SYSLOG_D( "######            MLME_DEVICE_TIME           ######");
+	            break;
+	        }
+	        case MLME_TXCW:
+	        {
+	        	SYSLOG_D( "######               MLME_TXCW               ######");
+	            break;
+	        }
+	        case MLME_TXCW_1:
+	        {
+	        	SYSLOG_D( "######               MLME_TXCW_1             ######");
+	            break;
+	        }
+	        default:
+	        {
+	        	SYSLOG_D( "######              MLME_UNKNOWN             ######");
+	            break;
+	        }
+	    }
+	   SYSLOG_D( "STATUS      : %s", MacStatusStrings[status] );
+	   SYSLOG_I("======================================================\n");
 }
 
 static void OnJoinRequest( LmHandlerJoinParams_t* params )
 {
-	SYSLOG_I("JoinRequest");
-	SYSLOG_I("Datarate = %d, Status = %d");
-	SYSLOG_D("CommissioningParams:");
-	SYSLOG_D("IsOtaaActivation = %d", params->CommissioningParams->IsOtaaActivation);
-	SYSDUMP_D("DevEui", &params->CommissioningParams->DevEui[0], sizeof(params->CommissioningParams->DevEui));
-	SYSDUMP_D("JoinEui", &params->CommissioningParams->JoinEui[0], sizeof(params->CommissioningParams->JoinEui));
-#if( ABP_ACTIVATION_LRWAN_VERSION == ABP_ACTIVATION_LRWAN_VERSION_V10x )
-	SYSDUMP_D("GenAppKey", &params->CommissioningParams->GenAppKey[0], sizeof(params->CommissioningParams->GenAppKey));
-#else
-	SYSDUMP_D("AppKey", &params->CommissioningParams->AppKey[0], sizeof(params->CommissioningParams->AppKey));
-#endif
-	SYSDUMP_D("NwkKey", &params->CommissioningParams->NwkKey[0], sizeof(params->CommissioningParams->NwkKey));
-	SYSLOG_D("NetworkId = %d", params->CommissioningParams->NetworkId);
-	SYSLOG_D("DevAddr = %d", params->CommissioningParams->DevAddr);
+	SYSLOG_I("OnJoinRequest");
+    if( params->CommissioningParams->IsOtaaActivation == true )
+    {
+        if( params->Status == LORAMAC_HANDLER_SUCCESS )
+        {
+        	SYSLOG_I( "###### ===========   JOINED     ============ ######" );
+        	SYSLOG_D( "OTAA" );
+        	SYSLOG_D( "DevAddr     :  %08X", params->CommissioningParams->DevAddr );
+        	SYSLOG_D( "DATA RATE   : DR_%d", params->Datarate );
+        	SYSLOG_I("======================================================\n");
+        }
+    }
 #if ( OVER_THE_AIR_ACTIVATION == 0 )
-	SYSDUMP_D("FNwkSIntKey", &params->CommissioningParams->FNwkSIntKey[0], sizeof(params->CommissioningParams->FNwkSIntKey));
-	SYSDUMP_D("SNwkSIntKey", &params->CommissioningParams->SNwkSIntKey[0], sizeof(params->CommissioningParams->SNwkSIntKey));
-	SYSDUMP_D("NwkSEncKey", &params->CommissioningParams->NwkSEncKey[0], sizeof(params->CommissioningParams->NwkSEncKey));
-	SYSDUMP_D("AppSKey", &params->CommissioningParams->AppSKey[0], sizeof(params->CommissioningParams->AppSKey));
+    else
+    {
+    	SYSLOG_I( "###### ===========   JOINED     ============ ######\r\n" );
+    	SYSLOG_D( "ABP" );
+    	SYSLOG_D( "DevAddr     : %08X\r\n", params->CommissioningParams->DevAddr );
+        SYSDUMP_D( "NwkSKey     :", params->CommissioningParams->FNwkSIntKey, 16 );
+        SYSDUMP_D( "AppSKey     :", params->CommissioningParams->AppSKey, 16 );
+        SYSLOG_I("======================================================\n");
+    }
 #endif
 
     if( params->Status == LORAMAC_HANDLER_ERROR )
@@ -434,23 +549,68 @@ static void OnJoinRequest( LmHandlerJoinParams_t* params )
 
 static void OnTxData( LmHandlerTxParams_t* params )
 {
-	SYSLOG_I("OnTxData");
-	SYSLOG_D("Channel = %d, Datarate = %d, TxPower = %d, UplinkCounter= %d, MsgType = %d, Status = %d", params->Channel, params->Datarate, params->TxPower, params->UplinkCounter, params->MsgType, params->Status);
-	SYSLOG_D("Port = %d, BufferSize = %d", params->AppData.Port, params->AppData.BufferSize);
-	SYSDUMP_D("Buffer: ", params->AppData.Buffer, params->AppData.BufferSize);
+	MibRequestConfirm_t mibGet;
+
+	SYSLOG_I("========================ON TX DATA=========================");
+    if( params->IsMcpsConfirm == 0 )
+    {
+    	SYSLOG_D( "MLME-Confirm STATUS : %s", EventInfoStatusStrings[params->Status] );
+        return;
+    }
+    SYSLOG_D( "MCPS-Confirm  STATUS : %s", EventInfoStatusStrings[params->Status] );
+    SYSLOG_D( "UPLINK FRAME  = %8u", params->UplinkCounter );
+    SYSLOG_D( "CLASS : %c", "ABC"[LmHandlerGetCurrentClass( )] );
+    SYSLOG_D( "TX PORT : %d", params->AppData.Port );
+    if( params->AppData.BufferSize != 0 )
+    {
+        if( params->MsgType == LORAMAC_HANDLER_CONFIRMED_MSG )
+        {
+        	SYSLOG_D( "CONFIRMED - %s", ( params->AckReceived != 0 ) ? "ACK" : "NACK" );
+        }
+        else
+        {
+        	SYSLOG_D( "UNCONFIRMED" );
+        }
+        SYSDUMP_D("TX DATA     : ", params->AppData.Buffer, params->AppData.BufferSize);
+    }
+    SYSLOG_D( "DATA RATE   : DR_%d", params->Datarate );
+    mibGet.Type  = MIB_CHANNELS;
+    if( LoRaMacMibGetRequestConfirm( &mibGet ) == LORAMAC_STATUS_OK )
+    {
+    	SYSLOG_D( "U/L FREQ    : %u", mibGet.Param.ChannelList[params->Channel].Frequency );
+    }
+
+    SYSLOG_D( "TX POWER    : %d", params->TxPower );
+    SYSLOG_I("======================================================\n");
 }
 
 static void OnRxData( LmHandlerAppData_t* appData, LmHandlerRxParams_t* params )
 {
-	SYSLOG_I("OnRxData");
-	SYSLOG_D("RxSlot = %d, Datarate = %d, Rssi = %d, Snr = %d, DownlinkCounter = %d, Status = %d", params->RxSlot, params->Datarate, params->Rssi, params->Snr, params->DownlinkCounter, params->Status);
-	SYSLOG_D("Port = %d, BufferSize = %d", appData->Port, appData->BufferSize);
-	SYSDUMP_D("Buffer: ", appData->Buffer, appData->BufferSize);
+    const char *slotStrings[] = { "1", "2", "C", "C Multicast", "B Ping-Slot", "B Multicast Ping-Slot" };
+
+    SYSLOG_I("==========ON RX DATA:===================");
+    if( params->IsMcpsIndication == 0 )
+    {
+    	SYSLOG_D( "MLME-Indication STATUS : %s", EventInfoStatusStrings[params->Status] );
+        return;
+    }
+    SYSLOG_D( "MCPS-Indication STATUS : %s", EventInfoStatusStrings[params->Status]);
+    SYSLOG_D( "DOWNLINK FRAME = %8u", params->DownlinkCounter );
+    SYSLOG_D( "RX WINDOW : %s", slotStrings[params->RxSlot] );
+    SYSLOG_D( "RX PORT : %d", appData->Port );
+    if( appData->BufferSize != 0 )
+    {
+    	SYSDUMP_D( "RX DATA     :",  appData->Buffer, appData->BufferSize);
+    }
+    SYSLOG_D( "DATA RATE   : DR_%d", params->Datarate );
+    SYSLOG_D( "RX RSSI     : %d", params->Rssi );
+    SYSLOG_D( "RX SNR      : %d", params->Snr );
+    SYSLOG_I("======================================================\n");
 }
 
 static void OnClassChange( DeviceClass_t deviceClass )
 {
-	SYSLOG_I("ClassChange = %d", deviceClass);
+	SYSLOG_I("###### ===== Switch to Class %c done.  ===== ######", "ABC"[deviceClass] );
 
     switch( deviceClass )
     {
@@ -503,12 +663,41 @@ static void OnBeaconStatusChange( LoRaMAcHandlerBeaconParams_t* params )
             break;
         }
     }
-
-    SYSLOG_I("BeaconStatusChang");
+    switch( params->State )
+    {
+        default:
+        case LORAMAC_HANDLER_BEACON_ACQUIRING:
+        {
+        	SYSLOG_I( "###### ========= BEACON ACQUIRING ========== ######" );
+            break;
+        }
+        case LORAMAC_HANDLER_BEACON_LOST:
+        {
+        	SYSLOG_I( "###### ============ BEACON LOST ============ ######" );
+            break;
+        }
+        case LORAMAC_HANDLER_BEACON_RX:
+        {
+        	SYSLOG_I( "###### ===== BEACON %8lu ==== ######", params->Info.Time.Seconds );
+        	SYSLOG_D( "GW DESC     : %d", params->Info.GwSpecific.InfoDesc );
+        	SYSDUMP_D( "GW INFO     : ",  params->Info.GwSpecific.Info, 6);
+        	SYSLOG_D( "FREQ        : %u", params->Info.Frequency );
+        	SYSLOG_D( "DATA RATE   : DR_%d", params->Info.Datarate );
+        	SYSLOG_D( "RX RSSI     : %d", params->Info.Rssi );
+        	SYSLOG_D( "RX SNR      : %d", params->Info.Snr );
+            break;
+        }
+        case LORAMAC_HANDLER_BEACON_NRX:
+        {
+        	SYSLOG_I( "###### ======== BEACON NOT RECEIVED ======== ######" );
+            break;
+        }
+    }
 }
 
 static void OnSysTimeUpdate( void )
 {
+	SYSLOG_I("SysTimeUpdate");
     IsClockSynched = true;
 }
 
@@ -643,7 +832,7 @@ static void UplinkProcess( void )
                     AppDataBuffer[0] = randr( 0, 255 );
                     AppDataBuffer[1] = randr( 0, 255 );
                     AppDataBuffer[2] = randr( 0, 255 );
-                    AppDataBuffer[4] = randr( 0, 255 );
+                    AppDataBuffer[3] = randr( 0, 255 );
                     // Send random packet
                     LmHandlerAppData_t appData =
                     {

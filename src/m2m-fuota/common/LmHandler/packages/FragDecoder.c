@@ -252,7 +252,7 @@ void FragDecoderInit( uint16_t fragNb, uint8_t fragSize, uint8_t *file, uint32_t
     FragDecoder.Status.FragNbLastRx = 0;
     FragDecoder.Status.FragNbLost = 0;
     FragDecoder.M2BLine = 0;
-
+    DBG("INIT. fragNb = %d, fragSize = %d");
     // Initialize missing fragments index array
     for( uint16_t i = 0; i < FRAG_MAX_NB; i++ )
     {
