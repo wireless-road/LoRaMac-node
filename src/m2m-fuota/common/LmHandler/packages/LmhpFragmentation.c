@@ -23,6 +23,10 @@
 #include "LmhpFragmentation.h"
 #include "FragDecoder.h"
 
+#define 	LOG_LEVEL   MAX_LOG_LEVEL_DEBUG
+#define 	LOG_MODULE "LMHPFRAG:"
+#include 	"syslog.h"
+
 /*!
  * LoRaWAN Application Layer Fragmented Data Block Transport Specification
  */
@@ -33,6 +37,17 @@
 
 #define FRAGMENTATION_MAX_SESSIONS                  4
 
+// Fragmentation Tx delay state
+typedef enum LmhpFragmentationTxDelayStates_e
+{
+    // Tx delay in idle state.
+    FRAGMENTATION_TX_DELAY_STATE_IDLE,
+    // Tx delay to be started.
+    FRAGMENTATION_TX_DELAY_STATE_START,
+    // Tx delay to be stopped.
+    FRAGMENTATION_TX_DELAY_STATE_STOP,
+}LmhpFragmentationTxDelayStates_t;
+
 /*!
  * Package current context
  */
@@ -40,6 +55,7 @@ typedef struct LmhpFragmentationState_s
 {
     bool Initialized;
     bool IsRunning;
+    LmhpFragmentationTxDelayStates_t TxDelayState;
     uint8_t DataBufferMaxSize;
     uint8_t *DataBuffer;
     uint8_t *file;
@@ -107,7 +123,8 @@ static void LmhpFragmentationOnMcpsIndication( McpsIndication_t *mcpsIndication 
 static LmhpFragmentationState_t LmhpFragmentationState =
 {
     .Initialized = false,
-    .IsRunning = false
+    .IsRunning = false,
+    .TxDelayState = FRAGMENTATION_TX_DELAY_STATE_IDLE,
 };
 
 typedef struct FragGroupData_s
@@ -148,6 +165,8 @@ typedef struct FragSessionData_s
 
 FragSessionData_t FragSessionData[FRAGMENTATION_MAX_SESSIONS];
 
+// Answer struct for the commands.
+LmHandlerAppData_t DelayedReplyAppData;
 
 static LmhPackage_t LmhpFragmentationPackage =
 {
@@ -168,6 +187,23 @@ static LmhPackage_t LmhpFragmentationPackage =
     .OnSysTimeUpdate = NULL,                                   // To be initialized by LmHandler
 };
 
+// Delay value.
+static uint32_t TxDelayTime;
+
+// Fragment Delay Timer struct
+static TimerEvent_t FragmentTxDelayTimer;
+
+/*!
+ * \brief Callback function for Fragment delay timer.
+ */
+static void OnFragmentTxDelay( void* context )
+{
+    // Stop the timer.
+    TimerStop( &FragmentTxDelayTimer );
+    // Set the state.
+    LmhpFragmentationState.TxDelayState = FRAGMENTATION_TX_DELAY_STATE_STOP;
+}
+
 LmhPackage_t *LmhpFragmentationPackageFactory( void )
 {
     return &LmhpFragmentationPackage;
@@ -182,6 +218,10 @@ static void LmhpFragmentationInit( void *params, uint8_t *dataBuffer, uint8_t da
         LmhpFragmentationState.DataBufferMaxSize = dataBufferMaxSize;
         LmhpFragmentationState.Initialized = true;
         LmhpFragmentationState.IsRunning = true;
+        // Initialize Fragmentation delay time.
+        TxDelayTime = 0;
+        // Initialize Fragmentation delay timer.
+        TimerInit( &FragmentTxDelayTimer, OnFragmentTxDelay );
     }
     else
     {
@@ -208,8 +248,33 @@ static bool LmhpFragmentationIsRunning( void )
 
 static void LmhpFragmentationProcess( void )
 {
-    // TODO: Start a timer to randomly delay the answer
+    LmhpFragmentationTxDelayStates_t delayTimerState;
 
+    CRITICAL_SECTION_BEGIN( );
+    delayTimerState = LmhpFragmentationState.TxDelayState;
+    // Set the state to idle so that the other states are executed only when they are set
+    // in the appropriate functions.
+    LmhpFragmentationState.TxDelayState = FRAGMENTATION_TX_DELAY_STATE_IDLE;
+    CRITICAL_SECTION_END( );
+
+    switch( delayTimerState )
+    {
+        case FRAGMENTATION_TX_DELAY_STATE_START:
+            // Set the timer with the initially calculated Delay value.
+            TimerSetValue( &FragmentTxDelayTimer, TxDelayTime );
+            // Start the timer.
+            TimerStart( &FragmentTxDelayTimer );
+            break;
+        case FRAGMENTATION_TX_DELAY_STATE_STOP:
+            // Send the reply.
+            LmHandlerSend( &DelayedReplyAppData, LORAMAC_HANDLER_UNCONFIRMED_MSG );
+            break;
+        case FRAGMENTATION_TX_DELAY_STATE_IDLE:
+            // Intentional fall through
+        default:
+            // Nothing to do.
+            break;
+    }
 }
 
 static void LmhpFragmentationOnMcpsIndication( McpsIndication_t *mcpsIndication )
@@ -217,6 +282,10 @@ static void LmhpFragmentationOnMcpsIndication( McpsIndication_t *mcpsIndication 
     uint8_t cmdIndex = 0;
     uint8_t dataBufferIndex = 0;
     bool isAnswerDelayed = false;
+    // Answer struct for the commands.
+    LmHandlerAppData_t cmdReplyAppData;
+    // Co-efficient used to calculate delay.
+    uint8_t blockAckDelay = 0;
 
     while( cmdIndex < mcpsIndication->BufferSize )
     {
@@ -246,11 +315,14 @@ static void LmhpFragmentationOnMcpsIndication( McpsIndication_t *mcpsIndication 
                     ( ( participants == 0 ) && ( FragSessionData[fragIndex].FragDecoderStatus.FragNbLost > 0 ) ) )
                 {
                     LmhpFragmentationState.DataBuffer[dataBufferIndex++] = FRAGMENTATION_FRAG_STATUS_ANS;
-                    LmhpFragmentationState.DataBuffer[dataBufferIndex++] = ( fragIndex << 14 ) |
-                                                                           ( ( FragSessionData[fragIndex].FragDecoderStatus.FragNbRx >> 8 ) & 0x3F );
                     LmhpFragmentationState.DataBuffer[dataBufferIndex++] = FragSessionData[fragIndex].FragDecoderStatus.FragNbRx & 0xFF;
+                    LmhpFragmentationState.DataBuffer[dataBufferIndex++] = ( fragIndex << 6 ) |
+                                                                           ( ( FragSessionData[fragIndex].FragDecoderStatus.FragNbRx >> 8 ) & 0x3F );
                     LmhpFragmentationState.DataBuffer[dataBufferIndex++] = FragSessionData[fragIndex].FragDecoderStatus.FragNbLost;
                     LmhpFragmentationState.DataBuffer[dataBufferIndex++] = FragSessionData[fragIndex].FragDecoderStatus.MatrixError & 0x01;
+
+                    // Fetch the co-efficient value required to calculate delay of that respective session.
+                    blockAckDelay = FragSessionData[fragIndex].FragGroupData.Control.Fields.BlockAckDelay;
                     isAnswerDelayed = true;
                 }
                 break;
@@ -280,19 +352,32 @@ static void LmhpFragmentationOnMcpsIndication( McpsIndication_t *mcpsIndication 
                 fragSessionData.FragGroupData.Descriptor += ( mcpsIndication->Buffer[cmdIndex++] << 8  ) & 0x0000FF00;
                 fragSessionData.FragGroupData.Descriptor += ( mcpsIndication->Buffer[cmdIndex++] << 16 ) & 0x00FF0000;
                 fragSessionData.FragGroupData.Descriptor += ( mcpsIndication->Buffer[cmdIndex++] << 24 ) & 0xFF000000;
+                SYSLOG_I("FRAGMENTATION_FRAG_SESSION_SETUP_REQ");
+                SYSLOG_D("FragSession = %d", fragSessionData.FragGroupData.FragSession.Value);
+                SYSLOG_D("FragNb = %d", fragSessionData.FragGroupData.FragNb);
+                SYSLOG_D("FragSize = %d", fragSessionData.FragGroupData.FragSize);
+                SYSLOG_D("Control = %d", fragSessionData.FragGroupData.Control.Value);
+                SYSLOG_D("Padding = %d", fragSessionData.FragGroupData.Padding );
+                SYSLOG_D("Descriptor = %d", fragSessionData.FragGroupData.Descriptor );
 
                 if( fragSessionData.FragGroupData.Control.Fields.FragAlgo > 0 )
                 {
+                	SYSLOG_E("Encoding unsupported");
                     status |= 0x01; // Encoding unsupported
                 }
 
 #if( FRAG_DECODER_FILE_HANDLING_NEW_API == 1 )
-                if( ( fragSessionData.FragGroupData.FragNb * fragSessionData.FragGroupData.FragSize ) > FragDecoderGetMaxFileSize( ) )
+                if( ( fragSessionData.FragGroupData.FragNb > FRAG_MAX_NB ) || 
+                    ( fragSessionData.FragGroupData.FragSize > FRAG_MAX_SIZE ) ||
+                    ( ( fragSessionData.FragGroupData.FragNb * fragSessionData.FragGroupData.FragSize ) > FragDecoderGetMaxFileSize( ) ) )
                 {
+                	SYSLOG_E("Not enough Memory");
                     status |= 0x02; // Not enough Memory
                 }
 #else
-                if( ( fragSessionData.FragGroupData.FragNb * fragSessionData.FragGroupData.FragSize ) > LmhpFragmentationParams->BufferSize )
+                if( ( fragSessionData.FragGroupData.FragNb > FRAG_MAX_NB ) || 
+                    ( fragSessionData.FragGroupData.FragSize > FRAG_MAX_SIZE ) ||
+                    ( ( fragSessionData.FragGroupData.FragNb * fragSessionData.FragGroupData.FragSize ) > LmhpFragmentationParams->BufferSize ) )
                 {
                     status |= 0x02; // Not enough Memory
                 }
@@ -300,6 +385,7 @@ static void LmhpFragmentationOnMcpsIndication( McpsIndication_t *mcpsIndication 
                 status |= ( fragSessionData.FragGroupData.FragSession.Fields.FragIndex << 6 ) & 0xC0;
                 if( fragSessionData.FragGroupData.FragSession.Fields.FragIndex >= FRAGMENTATION_MAX_SESSIONS )
                 {
+                	SYSLOG_E("FragSession index not supported");
                     status |= 0x04; // FragSession index not supported
                 }
 
@@ -308,6 +394,7 @@ static void LmhpFragmentationOnMcpsIndication( McpsIndication_t *mcpsIndication 
                 // Currently the descriptor is always correct
                 if( fragSessionData.FragGroupData.Descriptor != 0x01020304 )
                 {
+                	SYSLOG_E("Wrong Descriptor");
                     //status |= 0x08; // Wrong Descriptor
                 }
 
@@ -335,6 +422,7 @@ static void LmhpFragmentationOnMcpsIndication( McpsIndication_t *mcpsIndication 
             }
             case FRAGMENTATION_FRAG_SESSION_DELETE_REQ:
             {
+            	SYSLOG_I("FRAGMENTATION_FRAG_SESSION_DELETE_REQ");
                 if( mcpsIndication->Multicast == 1 )
                 {
                     // Multicast channel. Don't process command.
@@ -426,22 +514,34 @@ static void LmhpFragmentationOnMcpsIndication( McpsIndication_t *mcpsIndication 
         }
     }
 
-    if( isAnswerDelayed == true )
+    // After processing the commands, if the end-node has to reply back then a flag is checked if the
+    // reply is to be sent immediately or with a delay.
+    // In some scenarios it is not desired that multiple end-notes send uplinks at the same time to
+    // the same server. (Example: Fragment status during a multicast FUOTA)
+    if( dataBufferIndex != 0 )
     {
-        // TODO: Start a timer to randomly delay the answer
-    }
-    else
-    {
-        if( dataBufferIndex != 0 )
+        // Prepare Answer that is to be transmitted
+        cmdReplyAppData.Buffer = LmhpFragmentationState.DataBuffer;
+        cmdReplyAppData.BufferSize = dataBufferIndex;
+        cmdReplyAppData.Port = FRAGMENTATION_PORT;
+
+        if( isAnswerDelayed == true )
         {
-            // Answer commands
-            LmHandlerAppData_t appData =
-            {
-                .Buffer = LmhpFragmentationState.DataBuffer,
-                .BufferSize = dataBufferIndex,
-                .Port = FRAGMENTATION_PORT
-            };
-            LmhpFragmentationPackage.OnSendRequest( &appData, LORAMAC_HANDLER_UNCONFIRMED_MSG );
+            // Delay value is calculated using BlockAckDelay which is communicated by server during the FragSessionSetupReq
+            // Pseudo Random Delay = rand(0:1) * 2^(blockAckDelay + 4) Seconds.
+            // Delay = Pseudo Random Delay * 1000 milli seconds.
+            // Eg: blockAckDelay = 7
+            //     Pseudo Random Delay = rand(0:1) * 2^11
+            //     rand(0:1) seconds = rand(0:1000) milliseconds
+            //     Delay = rand(0:1000) * 2048 => 2048000ms = 34 minutes
+            TxDelayTime = randr( 0, 1000 ) * ( 1 << ( blockAckDelay + 4 ) );
+            DelayedReplyAppData = cmdReplyAppData;
+            LmhpFragmentationState.TxDelayState = FRAGMENTATION_TX_DELAY_STATE_START;
+        }
+        else
+        {
+            // Send the prepared answer
+            LmhpFragmentationPackage.OnSendRequest( &cmdReplyAppData, LORAMAC_HANDLER_UNCONFIRMED_MSG );
         }
     }
 }

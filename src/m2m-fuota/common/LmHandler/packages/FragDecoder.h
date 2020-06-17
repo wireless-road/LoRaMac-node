@@ -36,14 +36,14 @@
  *
  * \remark This parameter has an impact on the memory footprint.
  */
-#define FRAG_MAX_NB                                 21
+#define FRAG_MAX_NB                                 32
 
 /*!
  * Maximum fragment size that can be handled.
  *
  * \remark This parameter has an impact on the memory footprint.
  */
-#define FRAG_MAX_SIZE                               50
+#define FRAG_MAX_SIZE                               64
 
 /*!
  * Maximum number of extra frames that can be handled.

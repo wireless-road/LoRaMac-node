@@ -107,9 +107,9 @@ const char* EventInfoStatusStrings[] =
 #define LORAWAN_DEFAULT_CLASS                       CLASS_A
 
 /*!
- * Defines the application data transmission duty cycle. 30s, value in [ms].
+ * Defines the application data transmission duty cycle. 60s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            40000
+#define APP_TX_DUTYCYCLE                            60000
 
 /*!
  * Defines a random delay for application data transmission duty cycle. 5s,
@@ -122,14 +122,14 @@ const char* EventInfoStatusStrings[] =
  *
  * \remark Please note that when ADR is enabled the end-device should be static
  */
-#define LORAWAN_ADR_STATE                           LORAMAC_HANDLER_ADR_ON
+#define LORAWAN_ADR_STATE                           0//LORAMAC_HANDLER_ADR_OFF
 
 /*!
  * Default datarate
  *
  * \remark Please note that LORAWAN_DEFAULT_DATARATE is used only when ADR is disabled 
  */
-#define LORAWAN_DEFAULT_DATARATE                    DR_3
+#define LORAWAN_DEFAULT_DATARATE                    DR_0
 
 /*!
  * LoRaWAN confirmed messages
@@ -286,7 +286,7 @@ static LmhpComplianceParams_t LmhpComplianceParams =
  *         If bigger file size is to be received or is fragmented differently
  *         one must update those parameters.
  */
-#define UNFRAGMENTED_DATA_SIZE                     ( 21 * 50 )
+#define UNFRAGMENTED_DATA_SIZE                     ( 32 * 32 )
 
 /*
  * Un-fragmented data storage.
@@ -389,6 +389,7 @@ int main( void )
 
     StartTxProcess( LORAMAC_HANDLER_TX_ON_TIMER );
 
+
     while( 1 )
     {
         // Processes the LoRaMac events
@@ -406,7 +407,7 @@ int main( void )
         else
         {
             // The MCU wakes up through events
-            BoardLowPowerHandler( );
+            //BoardLowPowerHandler( );
         }
         CRITICAL_SECTION_END( );
     }
@@ -704,7 +705,7 @@ static void OnSysTimeUpdate( void )
 #if( FRAG_DECODER_FILE_HANDLING_NEW_API == 1 )
 static uint8_t FragDecoderWrite( uint32_t addr, uint8_t *data, uint32_t size )
 {
-	SYSLOG_I("DecoderWrite. addr = %d, size = %d");
+	SYSLOG_I("DecoderWrite. addr = %d, size = %d", addr, size);
 	SYSDUMP_D("data: ", data, size);
     if( size >= UNFRAGMENTED_DATA_SIZE )
     {
@@ -721,7 +722,7 @@ static uint8_t FragDecoderWrite( uint32_t addr, uint8_t *data, uint32_t size )
 
 static uint8_t FragDecoderRead( uint32_t addr, uint8_t *data, uint32_t size )
 {
-	SYSLOG_I("DecoderRead. addr = %d, size = %d");
+	SYSLOG_I("DecoderRead. addr = %d, size = %d", addr, size);
 
     if( size >= UNFRAGMENTED_DATA_SIZE )
     {
@@ -840,7 +841,7 @@ static void UplinkProcess( void )
                         .BufferSize = 4,
                         .Port = 3,
                     };
-                    status = LmHandlerSend( &appData, LORAMAC_HANDLER_UNCONFIRMED_MSG );
+                    status = LmHandlerSend( &appData, LORAMAC_HANDLER_CONFIRMED_MSG );
                 }
             }
             else

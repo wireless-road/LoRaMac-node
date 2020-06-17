@@ -26,7 +26,7 @@
 #include "FragDecoder.h"
 
 #define 	LOG_LEVEL   MAX_LOG_LEVEL_DEBUG
-#define 	LOG_MODULE "FRAGDECODER:"
+#define 	LOG_MODULE "FRAGDEC:"
 #include 	"syslog.h"
 
 #define DBG_TRACE                                   1
@@ -114,7 +114,7 @@ static void GetRow( uint8_t *dst, uint8_t *src, uint16_t row, uint16_t size );
  *
  * \retval parity         Parity value at the given index
  */
-static uint8_t GetParity( uint8_t index, uint8_t *matrixRow  );
+static uint8_t GetParity( uint16_t index, uint8_t *matrixRow  );
 
 /*!
  * \brief Sets the parity value on the given row of the parity matrix
@@ -123,7 +123,7 @@ static uint8_t GetParity( uint8_t index, uint8_t *matrixRow  );
  * \param [IN/OUT] matrixRow Pointer to the parity matrix.
  * \param [IN]     parity    The parity value to be set in the parity matrix
  */
-static void SetParity( uint8_t index, uint8_t *matrixRow, uint8_t parity );
+static void SetParity( uint16_t index, uint8_t *matrixRow, uint8_t parity );
 
 /*!
  * \brief Check if the provided value is a power of 2
@@ -276,7 +276,8 @@ void FragDecoderInit( uint16_t fragNb, uint8_t fragSize, uint8_t *file, uint32_t
 #if( FRAG_DECODER_FILE_HANDLING_NEW_API == 1 )
         if( ( FragDecoder.Callbacks != NULL ) && ( FragDecoder.Callbacks->FragDecoderWrite != NULL ) )
         {
-            FragDecoder.Callbacks->FragDecoderWrite( i, ( uint8_t[] ){ 0xFF }, 1 );
+            uint8_t buffer[1] = { 0xFF };
+            FragDecoder.Callbacks->FragDecoderWrite( i, buffer, 1 );
         }
 #else
         FragDecoder.File[i] = 0xFF;
@@ -514,7 +515,7 @@ static void GetRow( uint8_t *dst, uint8_t *src, uint16_t row, uint16_t size )
 }
 #endif
 
-static uint8_t GetParity( uint8_t index, uint8_t *matrixRow  )
+static uint8_t GetParity( uint16_t index, uint8_t *matrixRow  )
 {
     uint8_t parity;
     parity = matrixRow[index >> 3];
@@ -522,7 +523,7 @@ static uint8_t GetParity( uint8_t index, uint8_t *matrixRow  )
     return parity;
 }
 
-static void SetParity( uint8_t index, uint8_t *matrixRow, uint8_t parity )
+static void SetParity( uint16_t index, uint8_t *matrixRow, uint8_t parity )
 {
     uint8_t mask = 0xFF - ( 1 << ( 7 - ( index % 8 ) ) );
     parity = parity << ( 7 - ( index % 8 ) );
@@ -650,9 +651,9 @@ static void FragFindMissingFrags( uint16_t counter )
     {
         FragDecoder.Status.FragNbLastRx = FragDecoder.FragNb + 1;
     }
-    DBG( "RECEIVED    : %5d / %5d Fragments\r\n", FragDecoder.Status.FragNbRx, FragDecoder.FragNb );
-    DBG( "              %5d / %5d Bytes\r\n", FragDecoder.Status.FragNbRx * FragDecoder.FragSize, FragDecoder.FragNb * FragDecoder.FragSize );
-    DBG( "LOST        :       %7d Fragments\r\n\r\n", FragDecoder.Status.FragNbLost );
+    DBG( "RECEIVED    : %5d / %5d Fragments\n", FragDecoder.Status.FragNbRx, FragDecoder.FragNb );
+    DBG( "              %5d / %5d Bytes\n", FragDecoder.Status.FragNbRx * FragDecoder.FragSize, FragDecoder.FragNb * FragDecoder.FragSize );
+    DBG( "LOST        :       %7d Fragments\n\n", FragDecoder.Status.FragNbLost );
 }
 
 /*!
