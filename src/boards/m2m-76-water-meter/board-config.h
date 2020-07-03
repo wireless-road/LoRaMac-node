@@ -45,7 +45,7 @@
 /*!
  * Board MCU pins definitions
  */
-#define RADIO_RESET                                 PB_13
+#define RADIO_RESET                                 PB_9
 
 #define RADIO_MOSI                                  PA_7
 #define RADIO_MISO                                  PA_6
@@ -73,16 +73,16 @@
 
 #define RADIO_NSS                                   PA_4
 
-#define RADIO_DIO_0                                 PB_12
-#define RADIO_DIO_1                                 PB_11
-#define RADIO_DIO_2                                 PB_10
-#define RADIO_DIO_3                                 PB_2
-#define RADIO_DIO_4                                 PB_1
-#define RADIO_DIO_5                                 PB_0
+#define RADIO_DIO_0                                 PB_8
+#define RADIO_DIO_1                                 PB_6
+#define RADIO_DIO_2                                 PB_4
+#define RADIO_DIO_3                                 PA_15
+#define RADIO_DIO_4                                 PB_3
+#define RADIO_DIO_5                                 PA_12
 
 #define RADIO_ANT_SWITCH                            PA_1
 
-#define LED_1                                       PB_8
+#define LED_1                                       NC
 #define LED_2                                       NC
 
 // Debug pins definition.
@@ -103,7 +103,7 @@
 #define I2C_SCL                                     PB_8
 #define I2C_SDA                                     PB_9
 
-#define UART_TX                                     PA_9
-#define UART_RX                                     PA_10
+#define UART_TX                                     PA_2
+#define UART_RX                                     PA_3
 
 #endif // __BOARD_CONFIG_H__

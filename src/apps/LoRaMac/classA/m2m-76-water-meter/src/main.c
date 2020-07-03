@@ -1052,7 +1052,7 @@ int main( void )
     MibRequestConfirm_t mibReq;
     LoRaMacStatus_t status;
 
-    uint8_t devEui[] = { 0x34, 0x39, 0x34, 0x35, 0x4a, 0x37, 0x75, 0x16 };//LORAWAN_DEVICE_EUI;
+    uint8_t devEui[] = { 0x34, 0x39, 0x34, 0x35, 0x4a, 0x37, 0x75, 0x17 };//LORAWAN_DEVICE_EUI;
     uint8_t joinEui[] = LORAWAN_JOIN_EUI;
 //    uint8_t devEui[] = { 0x34, 0x39, 0x34, 0x35, 0x3a, 0x37, 0x75, 0x16 };//LORAWAN_DEVICE_EUI;
 //    uint8_t joinEui[] = LORAWAN_JOIN_EUI;
