@@ -41,7 +41,7 @@ uint8_t TxData = 0;
 
 extern Uart_t Uart1;
 
-#ifndef PRODUCTION
+#ifdef DEPRECATED
 void UartMcuInit( Uart_t *obj, UartId_t uartId, PinNames tx, PinNames rx )
 {
     obj->UartId = uartId;
@@ -64,11 +64,13 @@ void UartMcuInit( Uart_t *obj, UartId_t uartId, PinNames tx, PinNames rx )
 }
 #endif
 
-#include <nmea_gps.h>
+//#include <nmea_gps.h>
 
 void Board_LL_Usart2_Init(void)
 {
 	LL_GPIO_InitTypeDef GPIO_InitStruct;
+
+	LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
 
 	// Peripheral clock enable
 	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2);
@@ -79,7 +81,7 @@ void Board_LL_Usart2_Init(void)
 	GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
 	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
 	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+	GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
 	GPIO_InitStruct.Alternate = LL_GPIO_AF_4;
 	LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -138,19 +140,25 @@ void Board_LL_Usart2_Config(void)
 	//*/
 }
 
+void USART2_sendChar(uint8_t data)
+{
+	while (!LL_USART_IsActiveFlag_TXE(USART2));
+	LL_USART_TransmitData8(USART2, data);
+}
+
 void USART2_IRQHandler(void)
 {
 	if ( LL_USART_IsActiveFlag_RXNE(USART2) )
 	{
 //		char t = USART2->RDR;
 		char t = LL_USART_ReceiveData8(USART2);
-		nmea_parser(t);
+//		nmea_parser(t);
 //		LL_USART_TransmitData8(USART2, t);
 	} else {
 	}
 }
 
-#ifndef PRODUCTION
+#ifdef DEPRECATED
 void UartMcuConfig( Uart_t *obj, UartMode_t mode, uint32_t baudrate, WordLength_t wordLength, StopBits_t stopBits, Parity_t parity, FlowCtrl_t flowCtrl )
 {
     if( obj->UartId == UART_USB_CDC )

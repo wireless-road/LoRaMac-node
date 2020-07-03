@@ -97,12 +97,13 @@ static bool UsbIsConnected = false;
 /*!
  * UART2 FIFO buffers size
  */
+#ifdef DEPRECATED
 #define UART1_FIFO_TX_SIZE                                1024
 #define UART1_FIFO_RX_SIZE                                1024
 
 uint8_t Uart1TxBuffer[UART1_FIFO_TX_SIZE];
 uint8_t Uart1RxBuffer[UART1_FIFO_RX_SIZE];
-
+#endif
 /*!
  * Flag to indicate if the SystemWakeupTime is Calibrated
  */
@@ -150,15 +151,17 @@ void BoardInitMcu( void )
         GpioWrite( &Led1, 1 );
         UsbIsConnected = true;
 
+#ifdef DEPRECATED
         FifoInit( &Uart1.FifoTx, Uart1TxBuffer, UART1_FIFO_TX_SIZE );
         FifoInit( &Uart1.FifoRx, Uart1RxBuffer, UART1_FIFO_RX_SIZE );
         // Configure your terminal for 8 Bits data (7 data bit + 1 parity bit), no parity and no flow ctrl
-#ifndef PRODUCTION
         UartInit( &Uart1, UART_1, UART_TX, UART_RX );
         UartConfig( &Uart1, RX_TX, 256000, UART_8_BIT, UART_1_STOP_BIT, NO_PARITY, NO_FLOW_CTRL );
 #endif
-        printf("hi\r\n");
+#ifndef PRODUCTION
         Board_LL_Usart2_Init();
+#endif
+        printf("hi\r\n");
         RtcInit( );
 
         BoardUnusedIoInit( );
@@ -449,7 +452,10 @@ void BoardLowPowerHandler( void )
  */
 int _write( int fd, const void *buf, size_t count )
 {
-    while( UartPutBuffer( &Uart1, ( uint8_t* )buf, ( uint16_t )count ) != 0 ){ };
+//    while( UartPutBuffer( &Uart1, ( uint8_t* )buf, ( uint16_t )count ) != 0 ){ };
+    for(uint32_t i=0; i<count; i++) {
+    	USART2_sendChar(*(uint8_t*)buf++);
+    }
     return count;
 }
 
@@ -459,9 +465,9 @@ int _write( int fd, const void *buf, size_t count )
 int _read( int fd, const void *buf, size_t count )
 {
     size_t bytesRead = 0;
-    while( UartGetBuffer( &Uart1, ( uint8_t* )buf, count, ( uint16_t* )&bytesRead ) != 0 ){ };
+//    while( UartGetBuffer( &Uart1, ( uint8_t* )buf, count, ( uint16_t* )&bytesRead ) != 0 ){ };
     // Echo back the character
-    while( UartPutBuffer( &Uart1, ( uint8_t* )buf, ( uint16_t )bytesRead ) != 0 ){ };
+//    while( UartPutBuffer( &Uart1, ( uint8_t* )buf, ( uint16_t )bytesRead ) != 0 ){ };
     return bytesRead;
 }
 #endif
