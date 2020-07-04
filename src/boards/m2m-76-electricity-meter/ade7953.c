@@ -53,9 +53,9 @@ void ADE7953Init( void )
 
 	    DelayMs( 10 );
 
-	 //   data = ADE7953Read( LINECYC_16, 2 );
-	 //   ADE7953Write( LINECYC_16, 0x000f, 2 );
-	 //   data = ADE7953Read( LINECYC_16, 2 );
+	    data = ADE7953Read( LINECYC_16, 2 );
+	    ADE7953Write( LINECYC_16, 0x000f, 2 );
+	    data = ADE7953Read( LINECYC_16, 2 );
 
 	    if (config!=0x8004){
 	    	ADE7953MODE = 0xFF; // reset,init error
@@ -66,19 +66,23 @@ void ADE7953Init( void )
 	    data = ADE7953Read( VRMS_24, 3);
 	    data = ADE7953Read( IRMSA_24, 3);
 
-}
+	    }
 }
 
 void ADE7953Reset( void )
 {
     // Set RESET pin to 0
-    GpioInit( &ADE7953.Reset, ADE7953_RESET, PIN_OUTPUT, PIN_PUSH_PULL, PIN_NO_PULL, 0 );
-
-    // Wait 10 ms
+    GpioInit( &ADE7953.Reset, ADE7953_RESET, PIN_OUTPUT, PIN_PUSH_PULL, PIN_NO_PULL, 1 );
+    GpioWrite( &ADE7953.Reset, 1 );
     DelayMs( 10 );
 
-    // Configure RESET as input
-    GpioInit( &ADE7953.Reset, ADE7953_RESET, PIN_INPUT, PIN_PUSH_PULL, PIN_NO_PULL, 1 );
+    GpioWrite( &ADE7953.Reset, 0 );
+    DelayMs( 10 );
+
+    GpioWrite( &ADE7953.Reset, 1 );
+
+//    // Configure RESET as input
+//    GpioInit( &ADE7953.Reset, ADE7953_RESET, PIN_INPUT, PIN_PUSH_PULL, PIN_NO_PULL, 1 );
 
     // Wait 16 ms
     DelayMs( 16 );
