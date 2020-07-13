@@ -254,38 +254,12 @@ static bool VerifyRfFreq( uint32_t freq )
     return true;
 }
 
-static uint8_t CountNbOfEnabledChannels( uint8_t datarate, uint16_t* channelsMask, ChannelParams_t* channels, Band_t* bands, uint8_t* enabledChannels, uint8_t* delayTx )
+static TimerTime_t GetTimeOnAir( int8_t datarate, uint16_t pktLen )
 {
-    uint8_t nbEnabledChannels = 0;
-    uint8_t delayTransmission = 0;
+    int8_t phyDr = DataratesUS915[datarate];
+    uint32_t bandwidth = GetBandwidth( datarate );
 
-    for( uint8_t i = 0, k = 0; i < US915_MAX_NB_CHANNELS; i += 16, k++ )
-    {
-        for( uint8_t j = 0; j < 16; j++ )
-        {
-            if( ( channelsMask[k] & ( 1 << j ) ) != 0 )
-            {
-                if( channels[i + j].Frequency == 0 )
-                { // Check if the channel is enabled
-                    continue;
-                }
-                if( RegionCommonValueInRange( datarate, channels[i + j].DrRange.Fields.Min,
-                                              channels[i + j].DrRange.Fields.Max ) == false )
-                { // Check if the current channel selection supports the given datarate
-                    continue;
-                }
-                if( bands[channels[i + j].Band].TimeOff > 0 )
-                { // Check if the band is available for transmission
-                    delayTransmission++;
-                    continue;
-                }
-                enabledChannels[nbEnabledChannels++] = i + j;
-            }
-        }
-    }
-
-    *delayTx = delayTransmission;
-    return nbEnabledChannels;
+    return Radio.TimeOnAir( MODEM_LORA, bandwidth, phyDr, 1, 8, false, pktLen, true );
 }
 
 PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
@@ -337,11 +311,6 @@ PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
         case PHY_MAX_PAYLOAD:
         {
             phyParam.Value = MaxPayloadOfDatarateUS915[getPhy->Datarate];
-            break;
-        }
-        case PHY_MAX_PAYLOAD_REPEATER:
-        {
-            phyParam.Value = MaxPayloadOfDatarateRepeaterUS915[getPhy->Datarate];
             break;
         }
         case PHY_DUTY_CYCLE:
@@ -427,7 +396,7 @@ PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
         }
         case PHY_DEF_MAX_EIRP:
         {
-            phyParam.fValue = US915_DEFAULT_MAX_ERP + 2.15;
+            phyParam.fValue = US915_DEFAULT_MAX_ERP + 2.15f;
             break;
         }
         case PHY_DEF_ANTENNA_GAIN:
@@ -437,7 +406,7 @@ PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
         }
         case PHY_BEACON_CHANNEL_FREQ:
         {
-            phyParam.Value = US915_BEACON_CHANNEL_FREQ;
+            phyParam.Value = US915_BEACON_CHANNEL_FREQ + ( getPhy->Channel * US915_BEACON_CHANNEL_STEPWIDTH );
             break;
         }
         case PHY_BEACON_FORMAT:
@@ -462,9 +431,24 @@ PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
             phyParam.Value = US915_BEACON_NB_CHANNELS;
             break;
         }
+        case PHY_PING_SLOT_CHANNEL_FREQ:
+        {
+            phyParam.Value = US915_PING_SLOT_CHANNEL_FREQ + ( getPhy->Channel * US915_BEACON_CHANNEL_STEPWIDTH );
+            break;
+        }
         case PHY_PING_SLOT_CHANNEL_DR:
         {
             phyParam.Value = US915_PING_SLOT_CHANNEL_DR;
+            break;
+        }
+        case PHY_SF_FROM_DR:
+        {
+            phyParam.Value = DataratesUS915[getPhy->Datarate];
+            break;
+        }
+        case PHY_BW_FROM_DR:
+        {
+            phyParam.Value = GetBandwidth( getPhy->Datarate );
             break;
         }
         default:
@@ -478,7 +462,8 @@ PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
 
 void RegionUS915SetBandTxDone( SetBandTxDoneParams_t* txDone )
 {
-    RegionCommonSetBandTxDone( txDone->Joined, &NvmCtx.Bands[NvmCtx.Channels[txDone->Channel].Band], txDone->LastTxDoneTime );
+    RegionCommonSetBandTxDone( &NvmCtx.Bands[NvmCtx.Channels[txDone->Channel].Band],
+                               txDone->LastTxAirTime, txDone->Joined, txDone->ElapsedTimeSinceStartUp );
 }
 
 void RegionUS915InitDefaults( InitDefaultsParams_t* params )
@@ -490,34 +475,34 @@ void RegionUS915InitDefaults( InitDefaultsParams_t* params )
 
     switch( params->Type )
     {
-        case INIT_TYPE_INIT:
+        case INIT_TYPE_DEFAULTS:
         {
-            // Initialize bands
-            memcpy1( ( uint8_t* )NvmCtx.Bands, ( uint8_t* )bands, sizeof( Band_t ) * US915_MAX_NB_BANDS );
-
             // Initialize 8 bit channel groups index
             NvmCtx.JoinChannelGroupsCurrentIndex = 0;
 
             // Initialize the join trials counter
             NvmCtx.JoinTrialsCounter = 0;
 
-            // Channels
-            // 125 kHz channels
+            // Default bands
+            memcpy1( ( uint8_t* )NvmCtx.Bands, ( uint8_t* )bands, sizeof( Band_t ) * US915_MAX_NB_BANDS );
+
+            // Default channels
             for( uint8_t i = 0; i < US915_MAX_NB_CHANNELS - 8; i++ )
             {
+                // 125 kHz channels
                 NvmCtx.Channels[i].Frequency = 902300000 + i * 200000;
                 NvmCtx.Channels[i].DrRange.Value = ( DR_3 << 4 ) | DR_0;
                 NvmCtx.Channels[i].Band = 0;
             }
-            // 500 kHz channels
             for( uint8_t i = US915_MAX_NB_CHANNELS - 8; i < US915_MAX_NB_CHANNELS; i++ )
             {
+                // 500 kHz channels
                 NvmCtx.Channels[i].Frequency = 903000000 + ( i - ( US915_MAX_NB_CHANNELS - 8 ) ) * 1600000;
                 NvmCtx.Channels[i].DrRange.Value = ( DR_4 << 4 ) | DR_4;
                 NvmCtx.Channels[i].Band = 0;
             }
 
-            // ChannelsMask
+            // Default ChannelsMask
             NvmCtx.ChannelsDefaultMask[0] = 0xFFFF;
             NvmCtx.ChannelsDefaultMask[1] = 0xFFFF;
             NvmCtx.ChannelsDefaultMask[2] = 0xFFFF;
@@ -532,15 +517,11 @@ void RegionUS915InitDefaults( InitDefaultsParams_t* params )
             RegionCommonChanMaskCopy( NvmCtx.ChannelsMaskRemaining, NvmCtx.ChannelsMask, 6 );
             break;
         }
-        case INIT_TYPE_RESTORE_CTX:
+        case INIT_TYPE_RESET_TO_DEFAULT_CHANNELS:
         {
-            if( params->NvmCtx != 0 )
-            {
-                memcpy1( (uint8_t*) &NvmCtx, (uint8_t*) params->NvmCtx, sizeof( NvmCtx ) );
-            }
-            break;
+            // Intentional fallthrough
         }
-        case INIT_TYPE_RESTORE_DEFAULT_CHANNELS:
+        case INIT_TYPE_ACTIVATE_DEFAULT_CHANNELS:
         {
             // Copy channels default mask
             RegionCommonChanMaskCopy( NvmCtx.ChannelsMask, NvmCtx.ChannelsDefaultMask, 6 );
@@ -548,6 +529,14 @@ void RegionUS915InitDefaults( InitDefaultsParams_t* params )
             for( uint8_t i = 0; i < 6; i++ )
             { // Copy-And the channels mask
                 NvmCtx.ChannelsMaskRemaining[i] &= NvmCtx.ChannelsMask[i];
+            }
+            break;
+        }
+        case INIT_TYPE_RESTORE_CTX:
+        {
+            if( params->NvmCtx != 0 )
+            {
+                memcpy1( (uint8_t*) &NvmCtx, (uint8_t*) params->NvmCtx, sizeof( NvmCtx ) );
             }
             break;
         }
@@ -680,7 +669,6 @@ void RegionUS915ComputeRxWindowParameters( int8_t datarate, uint8_t minRxSymbols
 bool RegionUS915RxConfig( RxConfigParams_t* rxConfig, int8_t* datarate )
 {
     int8_t dr = rxConfig->Datarate;
-    uint8_t maxPayload = 0;
     int8_t phyDr = 0;
     uint32_t frequency = rxConfig->Frequency;
 
@@ -703,15 +691,7 @@ bool RegionUS915RxConfig( RxConfigParams_t* rxConfig, int8_t* datarate )
     // Radio configuration
     Radio.SetRxConfig( MODEM_LORA, rxConfig->Bandwidth, phyDr, 1, 0, 8, rxConfig->WindowTimeout, false, 0, false, 0, 0, true, rxConfig->RxContinuous );
 
-    if( rxConfig->RepeaterSupport == true )
-    {
-        maxPayload = MaxPayloadOfDatarateRepeaterUS915[dr];
-    }
-    else
-    {
-        maxPayload = MaxPayloadOfDatarateUS915[dr];
-    }
-    Radio.SetMaxPayloadLength( MODEM_LORA, maxPayload + LORA_MAC_FRMPAYLOAD_OVERHEAD );
+    Radio.SetMaxPayloadLength( MODEM_LORA, MaxPayloadOfDatarateUS915[dr] + LORAMAC_FRAME_PAYLOAD_OVERHEAD_SIZE );
 
     *datarate = (uint8_t) dr;
     return true;
@@ -734,10 +714,11 @@ bool RegionUS915TxConfig( TxConfigParams_t* txConfig, int8_t* txPower, TimerTime
 
     // Setup maximum payload lenght of the radio driver
     Radio.SetMaxPayloadLength( MODEM_LORA, txConfig->PktLen );
-    // Get the time-on-air of the next tx frame
-    *txTimeOnAir = Radio.TimeOnAir( MODEM_LORA, txConfig->PktLen );
-    *txPower = txPowerLimited;
 
+    // Update time-on-air
+    *txTimeOnAir = GetTimeOnAir( txConfig->Datarate, txConfig->PktLen );
+
+    *txPower = txPowerLimited;
     return true;
 }
 
@@ -973,29 +954,15 @@ int8_t RegionUS915AlternateDr( int8_t currentDr, AlternateDrType_t type )
     return currentDr;
 }
 
-void RegionUS915CalcBackOff( CalcBackOffParams_t* calcBackOff )
-{
-    RegionCommonCalcBackOffParams_t calcBackOffParams;
-
-    calcBackOffParams.Channels = NvmCtx.Channels;
-    calcBackOffParams.Bands = NvmCtx.Bands;
-    calcBackOffParams.LastTxIsJoinRequest = calcBackOff->LastTxIsJoinRequest;
-    calcBackOffParams.Joined = calcBackOff->Joined;
-    calcBackOffParams.DutyCycleEnabled = calcBackOff->DutyCycleEnabled;
-    calcBackOffParams.Channel = calcBackOff->Channel;
-    calcBackOffParams.ElapsedTime = calcBackOff->ElapsedTime;
-    calcBackOffParams.TxTimeOnAir = calcBackOff->TxTimeOnAir;
-
-    RegionCommonCalcBackOff( &calcBackOffParams );
-}
-
 LoRaMacStatus_t RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_t* channel, TimerTime_t* time, TimerTime_t* aggregatedTimeOff )
 {
     uint8_t nbEnabledChannels = 0;
-    uint8_t delayTx = 0;
+    uint8_t nbRestrictedChannels = 0;
     uint8_t enabledChannels[US915_MAX_NB_CHANNELS] = { 0 };
-    TimerTime_t nextTxDelay = 0;
-    uint8_t newChannelIndex;
+    uint8_t newChannelIndex = 0;
+    RegionCommonIdentifyChannelsParam_t identifyChannelsParam;
+    RegionCommonCountNbOfEnabledChannelsParams_t countChannelsParams;
+    LoRaMacStatus_t status = LORAMAC_STATUS_NO_CHANNEL_FOUND;
 
     // Count 125kHz channels
     if( RegionCommonCountChannels( NvmCtx.ChannelsMaskRemaining, 0, 4 ) == 0 )
@@ -1013,27 +980,30 @@ LoRaMacStatus_t RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_
         }
     }
 
-    TimerTime_t elapsed = TimerGetElapsedTime( nextChanParams->LastAggrTx );
-    if( ( nextChanParams->LastAggrTx == 0 ) || ( nextChanParams->AggrTimeOff <= elapsed ) )
-    {
-        // Reset Aggregated time off
-        *aggregatedTimeOff = 0;
+    // Search how many channels are enabled
+    countChannelsParams.Joined = nextChanParams->Joined;
+    countChannelsParams.Datarate = nextChanParams->Datarate;
+    countChannelsParams.ChannelsMask = NvmCtx.ChannelsMaskRemaining;
+    countChannelsParams.Channels = NvmCtx.Channels;
+    countChannelsParams.Bands = NvmCtx.Bands;
+    countChannelsParams.MaxNbChannels = US915_MAX_NB_CHANNELS;
+    countChannelsParams.JoinChannels = 0;
 
-        // Update bands Time OFF
-        nextTxDelay = RegionCommonUpdateBandTimeOff( nextChanParams->Joined, nextChanParams->DutyCycleEnabled, NvmCtx.Bands, US915_MAX_NB_BANDS );
+    identifyChannelsParam.AggrTimeOff = nextChanParams->AggrTimeOff;
+    identifyChannelsParam.LastAggrTx = nextChanParams->LastAggrTx;
+    identifyChannelsParam.DutyCycleEnabled = nextChanParams->DutyCycleEnabled;
+    identifyChannelsParam.MaxBands = US915_MAX_NB_BANDS;
 
-        // Search how many channels are enabled
-        nbEnabledChannels = CountNbOfEnabledChannels( nextChanParams->Datarate,
-                                                      NvmCtx.ChannelsMaskRemaining, NvmCtx.Channels,
-                                                      NvmCtx.Bands, enabledChannels, &delayTx );
-    }
-    else
-    {
-        delayTx++;
-        nextTxDelay = nextChanParams->AggrTimeOff - elapsed;
-    }
+    identifyChannelsParam.CountNbOfEnabledChannelsParam = &countChannelsParams;
 
-    if( nbEnabledChannels > 0 )
+    identifyChannelsParam.ElapsedTimeSinceStartUp = nextChanParams->ElapsedTimeSinceStartUp;
+    identifyChannelsParam.LastTxIsJoinRequest = nextChanParams->LastTxIsJoinRequest;
+    identifyChannelsParam.ExpectedTimeOnAir = GetTimeOnAir( nextChanParams->Datarate, nextChanParams->PktLen );
+
+    status = RegionCommonIdentifyChannels( &identifyChannelsParam, aggregatedTimeOff, enabledChannels,
+                                           &nbEnabledChannels, &nbRestrictedChannels, time );
+
+    if( status == LORAMAC_STATUS_OK )
     {
         if( nextChanParams->Joined == true )
         {
@@ -1071,22 +1041,8 @@ LoRaMacStatus_t RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_
 
         // Disable the channel in the mask
         RegionCommonChanDisable( NvmCtx.ChannelsMaskRemaining, *channel, US915_MAX_NB_CHANNELS );
-
-        *time = 0;
-        return LORAMAC_STATUS_OK;
     }
-    else
-    {
-        if( delayTx > 0 )
-        {
-            // Delay transmission due to AggregatedTimeOff or to a band time off
-            *time = nextTxDelay;
-            return LORAMAC_STATUS_DUTYCYCLE_RESTRICTED;
-        }
-        // Datarate not supported by any channel
-        *time = 0;
-        return LORAMAC_STATUS_NO_CHANNEL_FOUND;
-    }
+    return status;
 }
 
 LoRaMacStatus_t RegionUS915ChannelAdd( ChannelAddParams_t* channelAdd )

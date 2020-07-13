@@ -31,8 +31,7 @@
 #include "board-config.h"
 #include "lpm-board.h"
 #include "rtc-board.h"
-#include "LiteDisk.h"
-#include "LiteDiskDefs.h"
+#include "syslog.h"
 
 #if defined( SX1261MBXBAS ) || defined( SX1262MBXCAS ) || defined( SX1262MBXDAS )
     #include "sx126x-board.h"
@@ -110,6 +109,12 @@ static bool UsbIsConnected = false;
 uint8_t Uart1TxBuffer[UART1_FIFO_TX_SIZE];
 uint8_t Uart1RxBuffer[UART1_FIFO_RX_SIZE];
 #endif
+
+static void syslog_putchar(unsigned char ch)
+{
+	USART2_sendChar(ch);
+}
+
 /*!
  * Flag to indicate if the SystemWakeupTime is Calibrated
  */
@@ -137,11 +142,7 @@ void BoardCriticalSectionEnd( uint32_t *mask )
 
 void BoardInitPeriph( void )
 {
-#ifndef BOOTLOADER
-	LiteDiskInit(&DISK, &SX1276.Spi, &FILE_TABLE);
-#else
-	LiteDiskInit(&DISK, &Spi, &FILE_TABLE);
-#endif
+
 }
 
 #include <nmea_gps.h>
@@ -171,6 +172,7 @@ void BoardInitMcu( void )
 #endif
 #ifndef PRODUCTION
         Board_LL_Usart2_Init();
+        SYSLOG_INIT(syslog_putchar); // Инициализируем вывод логов
 #endif
         RtcInit( );
 

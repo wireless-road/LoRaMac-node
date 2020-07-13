@@ -309,12 +309,12 @@ static void LmhpRemoteMcastSetupOnMcpsIndication( McpsIndication_t *mcpsIndicati
 
                 McChannelParams_t channel = 
                 {
-//                    .IsRemotelySetup = true,
+                    .IsRemotelySetup = true,
                     .Class = CLASS_C, // Field not used for multicast channel setup. Must be initialized to something
                     .IsEnabled = true,
                     .GroupID = ( AddressIdentifier_t )McSessionData[id].McGroupData.IdHeader.Fields.McGroupId,
                     .Address = McSessionData[id].McGroupData.McAddr,
-                    .McKeyE = McSessionData[id].McGroupData.McKeyEncrypted,
+                    .McKeys.McKeyE = McSessionData[id].McGroupData.McKeyEncrypted,
                     .FCountMin = McSessionData[id].McGroupData.McFCountMin,
                     .FCountMax = McSessionData[id].McGroupData.McFCountMax,
                     .RxParams.ClassC = // Field not used for multicast channel setup. Must be initialized to something
@@ -383,7 +383,7 @@ static void LmhpRemoteMcastSetupOnMcpsIndication( McpsIndication_t *mcpsIndicati
                         TimerSetValue( &SessionStartTimer, timeToSessionStart * 1000 );
                         TimerStart( &SessionStartTimer );
 
-                        DBG( "Time2SessionStart: %ld ms\n", timeToSessionStart * 1000 );
+                        DBG( "Set RxParams OK. Time2SessionStart: %d ms\n", timeToSessionStart * 1000 );
 
                         LmhpRemoteMcastSetupState.DataBuffer[dataBufferIndex++] = status;
                         LmhpRemoteMcastSetupState.DataBuffer[dataBufferIndex++] = ( timeToSessionStart >> 0  ) & 0xFF;
@@ -393,9 +393,14 @@ static void LmhpRemoteMcastSetupOnMcpsIndication( McpsIndication_t *mcpsIndicati
                     }
                     else
                     {
+                        SYSLOG_E("\n\nSession start time before current device time\n\n");
                         // Session start time before current device time
                         status |= 0x10;
                     }
+                }
+                else
+                {
+                  SYSLOG_E("\n\r=============Error set RX param================\n\n");
                 }
                 LmhpRemoteMcastSetupState.DataBuffer[dataBufferIndex++] = status;
                 break;
@@ -425,12 +430,7 @@ static void LmhpRemoteMcastSetupOnMcpsIndication( McpsIndication_t *mcpsIndicati
 
         DBG( "ID          : %d\n", McSessionData[0].McGroupData.IdHeader.Fields.McGroupId );
         DBG( "McAddr      : %08lX\n", McSessionData[0].McGroupData.McAddr );
-        DBG( "McKey       : %02X", McSessionData[0].McGroupData.McKeyEncrypted[0] );
-        for( int i = 1; i < 16; i++ )
-        {
-            DBG( "-%02X",  McSessionData[0].McGroupData.McKeyEncrypted[i] );
-        }
-        DBG( "\n" );
+        SYSDUMP_D("McKey:", &McSessionData[0].McGroupData.McKeyEncrypted,16 );
         DBG( "McFCountMin : %lu\n",  McSessionData[0].McGroupData.McFCountMin );
         DBG( "McFCountMax : %lu\n",  McSessionData[0].McGroupData.McFCountMax );
         DBG( "SessionTime : %lu\n",  McSessionData[0].SessionTime );

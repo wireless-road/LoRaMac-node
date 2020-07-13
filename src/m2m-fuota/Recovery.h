@@ -2,41 +2,38 @@
 //
 //******************************************************************************
 
-#ifndef __LITE_DISK_DEFS_H
-#define __LITE_DISK_DEFS_H
+#ifndef __RECOVERY_H
+#define __RECOVERY_H
 
 //******************************************************************************
 // Included Files
 //******************************************************************************
 
-#include "LiteDisk.h"
-#include "at25sf041.h"
+#include <stdint.h>
+#include <stdbool.h>
+
+#include "version.h"
 
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
 
-#define SECTOR_SIZE				AT25SF041_SECTOR_SIZE
-
-#define RECOVERY_FILE_ID		(NULL_FILE_ID + 1)
-#define RECOVERY_FILE_START		(0)
-#define RECOVERY_FILE_SIZE		(((104*1024)/SECTOR_SIZE))
-
-#define UPDATE_FILE_ID			(RECOVERY_FILE_ID + 1)
-#define UPDATE_FILE_START		(RECOVERY_FILE_START + RECOVERY_FILE_SIZE)
-#define UPDATE_FILE_SIZE		(((104*1024)/SECTOR_SIZE))
-
 //******************************************************************************
 // Public Types
 //******************************************************************************
+
+typedef enum
+{
+  RECOVERY_RESULT_OK,
+  RECOVERY_RESULT_FAIL,
+  RECOVERY_RESULT_MISSING,
+} RECOVERY_RESULT;
 
 #ifndef __ASSEMBLY__
 
 //******************************************************************************
 // Public Data
 //******************************************************************************
-
-extern const LT_FILE FILE_TABLE[];
 
 #ifdef __cplusplus
 #define EXTERN extern "C"
@@ -54,6 +51,17 @@ extern "C"
 // Public Function Prototypes
 //******************************************************************************
   
+// Recovery check
+RECOVERY_RESULT RecoveryCheck(void);
+
+// Recovery save
+RECOVERY_RESULT RecoverySave(void);
+
+// Recovery app
+RECOVERY_RESULT RecoveryApp(void);
+
+RECOVERY_RESULT RecoveryDelete(void);
+  
 #undef EXTERN
 #ifdef __cplusplus
 }
@@ -61,4 +69,4 @@ extern "C"
 
 #endif /* __ASSEMBLY__ */
 
-#endif /* __*_H */
+#endif /* __RECOVERY_H */

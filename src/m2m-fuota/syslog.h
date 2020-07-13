@@ -9,6 +9,7 @@
 // Included Files
 //******************************************************************************
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdarg.h>
 #include "xprintf.h"
 
@@ -145,7 +146,7 @@ extern "C"
 //******************************************************************************
 
 void wsysdump(const void* buff, size_t len);
-  
+
 #undef EXTERN
 #ifdef __cplusplus
 }

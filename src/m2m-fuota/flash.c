@@ -11,12 +11,8 @@
 #include "stm32l0xx.h"
 #include "utilities.h"
 #include "board.h"
-#include "gpio.h"
-#include "version.h"
-#include "LiteDisk.h"
-#include "LiteDiskDefs.h"
 #include "flash.h"
-#define LOG_LEVEL   MAX_LOG_LEVEL_INFO
+#define LOG_LEVEL   MAX_LOG_LEVEL_DEBUG
 #define LOG_MODULE   "FLASH:"
 #include "syslog.h"
 
@@ -101,7 +97,7 @@ static bool FlashWrite(uint32_t StartAddr, uint32_t Size, uint8_t *Buff)
 // Public Functions
 //******************************************************************************
 
-FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size, uint16_t FileID)
+FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size,LT_FILE *f)
 {
 	uint8_t Buff[FLASH_PAGE_SIZE];
 	uint32_t Offs;
@@ -118,10 +114,10 @@ FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size, uint16_t FileID)
 	// Write
 	for (Offs = 0; Offs < Size; )
 	{
-		Result = LiteDiskFileRead(FileID, Offs, sizeof(Buff), Buff);
+		Result = LiteDiskFileRead(f, Offs, sizeof(Buff), Buff);
 		if (Result != sizeof(Buff))
 		{
-			SYSLOG_E("ERROR READ IMAGE.FileID = %d,Offs = %d", FileID ,Offs);
+                  SYSLOG_E("ERROR READ IMAGE. File:%s, Offs = %d", f->Name ,Offs);
 			//HAL_FLASH_Lock();
 			return FLASH_ERRROR;
 		}

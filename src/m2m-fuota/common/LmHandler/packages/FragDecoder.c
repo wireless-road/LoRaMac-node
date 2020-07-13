@@ -252,7 +252,7 @@ void FragDecoderInit( uint16_t fragNb, uint8_t fragSize, uint8_t *file, uint32_t
     FragDecoder.Status.FragNbLastRx = 0;
     FragDecoder.Status.FragNbLost = 0;
     FragDecoder.M2BLine = 0;
-    DBG("INIT. fragNb = %d, fragSize = %d");
+    DBG("INIT. fragNb = %d, fragSize = %d", FragDecoder.FragNb, FragDecoder.FragSize);
     // Initialize missing fragments index array
     for( uint16_t i = 0; i < FRAG_MAX_NB; i++ )
     {
@@ -271,18 +271,17 @@ void FragDecoderInit( uint16_t fragNb, uint8_t fragSize, uint8_t *file, uint32_t
     }
     
     // Initialize final uncoded data buffer ( FRAG_MAX_NB * FRAG_MAX_SIZE )
+#if( FRAG_DECODER_FILE_HANDLING_NEW_API == 1 )    
+    if( ( FragDecoder.Callbacks != NULL ) && ( FragDecoder.Callbacks->FragDecoderBegin != NULL ) )
+    {
+      FragDecoder.Callbacks->FragDecoderBegin( fragNb * fragSize );
+    }
+#else    
     for( uint32_t i = 0; i < ( fragNb * fragSize ); i++ )
     {
-#if( FRAG_DECODER_FILE_HANDLING_NEW_API == 1 )
-        if( ( FragDecoder.Callbacks != NULL ) && ( FragDecoder.Callbacks->FragDecoderWrite != NULL ) )
-        {
-            uint8_t buffer[1] = { 0xFF };
-            FragDecoder.Callbacks->FragDecoderWrite( i, buffer, 1 );
-        }
-#else
         FragDecoder.File[i] = 0xFF;
-#endif
     }
+#endif    
     FragDecoder.Status.FragNbLost = 0;
     FragDecoder.Status.FragNbLastRx = 0;
 }
@@ -651,9 +650,9 @@ static void FragFindMissingFrags( uint16_t counter )
     {
         FragDecoder.Status.FragNbLastRx = FragDecoder.FragNb + 1;
     }
-    DBG( "RECEIVED    : %5d / %5d Fragments\n", FragDecoder.Status.FragNbRx, FragDecoder.FragNb );
-    DBG( "              %5d / %5d Bytes\n", FragDecoder.Status.FragNbRx * FragDecoder.FragSize, FragDecoder.FragNb * FragDecoder.FragSize );
-    DBG( "LOST        :       %7d Fragments\n\n", FragDecoder.Status.FragNbLost );
+    DBG( "RECEIVED    : %5d / %5d Fragments", FragDecoder.Status.FragNbRx, FragDecoder.FragNb );
+    DBG( "              %5d / %5d Bytes", FragDecoder.Status.FragNbRx * FragDecoder.FragSize, FragDecoder.FragNb * FragDecoder.FragSize );
+    DBG( "LOST        :       %7d Fragments", FragDecoder.Status.FragNbLost );
 }
 
 /*!

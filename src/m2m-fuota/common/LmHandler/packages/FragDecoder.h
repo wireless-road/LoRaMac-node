@@ -36,21 +36,21 @@
  *
  * \remark This parameter has an impact on the memory footprint.
  */
-#define FRAG_MAX_NB                                 32
+#define FRAG_MAX_NB                                 1 * 1024
 
 /*!
  * Maximum fragment size that can be handled.
  *
  * \remark This parameter has an impact on the memory footprint.
  */
-#define FRAG_MAX_SIZE                               64
+#define FRAG_MAX_SIZE                               256
 
 /*!
  * Maximum number of extra frames that can be handled.
  *
  * \remark This parameter has an impact on the memory footprint.
  */
-#define FRAG_MAX_REDUNDANCY                         5
+#define FRAG_MAX_REDUNDANCY                         180
 
 #define FRAG_SESSION_FINISHED                       ( int32_t )0
 #define FRAG_SESSION_NOT_STARTED                    ( int32_t )-2
@@ -67,6 +67,7 @@ typedef struct sFragDecoderStatus
 #if( FRAG_DECODER_FILE_HANDLING_NEW_API == 1 )
 typedef struct sFragDecoderCallbacks
 {
+    uint8_t ( *FragDecoderBegin )( uint32_t size );
     /*!
      * Writes `data` buffer of `size` starting at address `addr`
      *

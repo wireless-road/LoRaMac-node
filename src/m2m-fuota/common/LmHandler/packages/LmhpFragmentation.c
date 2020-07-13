@@ -456,7 +456,8 @@ static void LmhpFragmentationOnMcpsIndication( McpsIndication_t *mcpsIndication 
 
                 fragIndex = ( fragCounter >> 14 ) & 0x03;
                 fragCounter &= 0x3FFF;
-
+                SYSLOG_D("DATA_FRAGMENT. fragCounter = %d, fragIndex = %d", fragCounter, fragIndex);
+                // TODO: LOG
                 if( mcpsIndication->Multicast == 1 )
                 {
                     // Message received on a multicast address

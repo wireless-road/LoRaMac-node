@@ -10,6 +10,9 @@
 //******************************************************************************
 
 #include <stdint.h>
+
+#include "LiteDisk.h"
+#include "LiteDiskDefs.h"
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
@@ -46,7 +49,7 @@ extern "C"
 // Public Function Prototypes
 //******************************************************************************
 
-FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size, uint16_t FileID);
+FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size, LT_FILE *f);
   
 #undef EXTERN
 #ifdef __cplusplus

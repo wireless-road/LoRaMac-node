@@ -71,7 +71,7 @@ static TimerEvent_t ComplianceTxNextPacketTimer;
  * Holds the compliance test current context
  */
 static ComplianceTestState_t ComplianceTestState =
-{ 
+{
     .Initialized = false,
     .IsRunning = false,
     .State = 0,

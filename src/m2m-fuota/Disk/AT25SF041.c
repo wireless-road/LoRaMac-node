@@ -44,7 +44,10 @@ typedef struct
 //******************************************************************************
 // Private Function Prototypes
 //******************************************************************************
-
+static int at25sf041_init(void *InitStr);
+static int at25sf041_erase_sector(uint32_t Sector);
+static int at25sf041_sector_read(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
+static int at25sf041_sector_write(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
 //******************************************************************************
 // Private Data
 //******************************************************************************
@@ -53,7 +56,7 @@ typedef struct
 // Public Data
 //******************************************************************************
 
-const LT_DISK DISK =
+const LT_DISK AT25SF041_DISK =
 {
 	.SectorSize = AT25SF041_SECTOR_SIZE,
 	.TotalSectors = AT25SF041_SECTOR_TOTAL,
@@ -182,13 +185,9 @@ static int at25sf041_page_write(uint32_t Addr, uint8_t *Data, uint16_t Size)
 }
 
 //******************************************************************************
-// Public Functions
-//******************************************************************************
-
-//******************************************************************************
 // Init flash
 //******************************************************************************
-int at25sf041_init(void *InitStr)
+static int at25sf041_init(void *InitStr)
 {
 	At25sf041_header cmd;
 	uint8_t Id[3] = {0};
@@ -221,7 +220,7 @@ int at25sf041_init(void *InitStr)
 //******************************************************************************
 // Clear flash sector
 //******************************************************************************
-int at25sf041_erase_sector(uint16_t Sector)
+static int at25sf041_erase_sector(uint32_t Sector)
 {
 	At25sf041_header cmd;
 	uint32_t addr;
@@ -253,7 +252,7 @@ int at25sf041_erase_sector(uint16_t Sector)
 //******************************************************************************
 // Disk write data
 //******************************************************************************
-int at25sf041_sector_write(uint8_t *Data, uint16_t Sector, uint16_t Offs, uint16_t Size)
+static int at25sf041_sector_write(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data)
 {
 	At25sf041_header cmd;
 	uint32_t Addr;
@@ -293,7 +292,7 @@ int at25sf041_sector_write(uint8_t *Data, uint16_t Sector, uint16_t Offs, uint16
 //******************************************************************************
 // Disk read data
 //******************************************************************************
-int at25sf041_sector_read(uint8_t *Data, uint16_t Sector, uint16_t Offs, uint16_t Size)
+static int at25sf041_sector_read(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data)
 {
 	At25sf041_header cmd;
 	uint32_t Addr;
@@ -314,3 +313,9 @@ int at25sf041_sector_read(uint8_t *Data, uint16_t Sector, uint16_t Offs, uint16_
 	AT25AT25SF041InOut(&cmd, NULL, 0, Data, Amount);
 	return Amount;
 }
+
+//******************************************************************************
+// Public Functions
+//******************************************************************************
+
+

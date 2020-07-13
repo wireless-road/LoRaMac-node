@@ -28,11 +28,11 @@
 // Public Data
 //******************************************************************************
 
-const LT_FILE FILE_TABLE[] =
+const LT_FILE_DEFS FILE_TABLE[] =
 {
-	{RECOVERY_FILE_ID,	RECOVERY_FILE_START, 	RECOVERY_FILE_SIZE	},
-	{UPDATE_FILE_ID, 	UPDATE_FILE_START, 		UPDATE_FILE_SIZE	},
-	{NULL_FILE_ID,		0,						0,					},
+  {RECOVERY_FILE_NAME,	RECOVERY_FILE_SIZE      },
+  {UPDATE_FILE_NAME,    UPDATE_FILE_SIZE        },
+  {0,                   0,                      },
 };
 
 //******************************************************************************

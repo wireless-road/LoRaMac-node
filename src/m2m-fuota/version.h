@@ -32,7 +32,7 @@ typedef struct _VER_STRUCT
 #ifdef BOOTLOADER
 #define BOOT_VER 	0,0,1
 #else
-#define APP_VER 	0,0,2
+#define APP_VER 	0,0,3
 #endif
 
 #define DEV_ID 		1
