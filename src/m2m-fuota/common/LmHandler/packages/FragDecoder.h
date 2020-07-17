@@ -36,7 +36,7 @@
  *
  * \remark This parameter has an impact on the memory footprint.
  */
-#define FRAG_MAX_NB                                 1 * 1024
+#define FRAG_MAX_NB                                 1024
 
 /*!
  * Maximum fragment size that can be handled.
@@ -50,7 +50,7 @@
  *
  * \remark This parameter has an impact on the memory footprint.
  */
-#define FRAG_MAX_REDUNDANCY                         180
+#define FRAG_MAX_REDUNDANCY                         128
 
 #define FRAG_SESSION_FINISHED                       ( int32_t )0
 #define FRAG_SESSION_NOT_STARTED                    ( int32_t )-2

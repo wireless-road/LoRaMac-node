@@ -6,16 +6,16 @@
 // Included Files
 //******************************************************************************
    
-#include "UpdateTask.h"
-#include "Update.h"
+#include "FileLoader.h"
 
 #include "LmHandler.h"
 #include "LmhpFragmentation.h"
 #include "LiteDisk.h"
 #include "LiteDiskDefs.h"
+#include "crc.h"
 
 #define LOG_LEVEL   MAX_LOG_LEVEL_DEBUG
-#define LOG_MODULE  "UPDATE:"
+#define LOG_MODULE  "FLOADER:"
 #include "syslog.h"
 
 //******************************************************************************
@@ -73,36 +73,63 @@ static LT_FILE *gUpdateFile = NULL;
 
 static uint32_t UpdateCrc( uint32_t Size )
 {
-  uint8_t Data;
+  uint8_t Data[256];
   uint32_t Len;
-    // The CRC calculation follows CCITT - 0x04C11DB7
-    const uint32_t reversedPolynom = 0xEDB88320;
 
     // CRC initial value
-    uint32_t crc = 0xFFFFFFFF;
+    uint32_t crc = 0;
 
     if( gUpdateFile == NULL )
     {
         return 0;
     }
 
-    for( uint32_t i = 0; i < Size; ++i )
+    for( uint32_t i = 0; i < Size; i += 256 )
     {
-        Len = LiteDiskFileRead(gUpdateFile, i, 1, &Data);
+        Len = LiteDiskFileRead(gUpdateFile, i, 256, Data);
         if (Len <= 0)
         {
           return 0;
         }
-        crc ^= ( uint32_t )Data;
-        for( uint16_t i = 0; i < 8; i++ )
-        {
-            crc = ( crc >> 1 ) ^ ( reversedPolynom & ~( ( crc & 0x01 ) - 1 ) );
-        }
+        crc = crc32_gcc(crc, Data, 256);
+        //SYSLOG_D("LoadData offs = %d", i);
+        //SYSDUMP_D("DATA: ", Data, 256);
     }
 
-    return ~crc;
+    return crc;
 }
 
+static void CopyAndCheck()
+{
+	LT_FILE *fRead, *fWrite;
+	uint8_t Buff[256];
+	int Len = 0;
+	fRead = LiteDiskFileOpen(TMP_FILE_NAME);
+	fWrite = LiteDiskFileOpen(UPDATE_FILE_NAME);
+
+	if(LiteDiskFileClear(gUpdateFile) < 0) // Очищаем файл
+	{
+	  SYSLOG_E("ERROR CLEAR FILE");
+	    return;
+	}
+
+	for(int i = 0; i < APP_SIZE; i += 256)
+	{
+		  Len = LiteDiskFileRead(fRead, i, 256, Buff);
+		  if (Len <= 0)
+		  {
+		    SYSLOG_E("ERROR READ FILE");
+		    return;
+		  }
+		  Len = LiteDiskFileRead(fWrite, i, 256, Buff);
+		  if (Len <= 0)
+		  {
+		    SYSLOG_E("ERROR READ FILE");
+		    return;
+		  }
+	}
+	UpdateCheck(NULL);
+}
 
 static uint8_t FragDecoderBegin( uint32_t size  )
 {
@@ -183,7 +210,8 @@ static void OnFragProgress( uint16_t fragCounter, uint16_t fragNb, uint8_t fragS
 
 static void OnFragDone( int32_t status, uint32_t size )
 {
-    //gFileRxCrc = UpdateCrc(size);
+    gFileRxCrc = UpdateCrc(size);
+    CopyAndCheck();
     gIsFileTransferDone = true;
     SYSLOG_D("FINISHED. STATUS %d, CRC = 0x%08X", status, gFileRxCrc);
 }
@@ -195,9 +223,9 @@ static void OnFragDone( int32_t status, uint32_t size )
 //******************************************************************************
 // Start update task
 //******************************************************************************
-bool UpdateTaskStart(void)
+bool FileLoaderStart(void)
 {
-  gUpdateFile = LiteDiskFileOpen(UPDATE_FILE_NAME);
+  gUpdateFile = LiteDiskFileOpen(TMP_FILE_NAME);
   if (!gUpdateFile)
   {
     SYSLOG_E("NOT OPEN FILE");
@@ -213,7 +241,7 @@ bool UpdateTaskStart(void)
 //******************************************************************************
 // Update task time proc
 //******************************************************************************
-void UpdateTaskProc(void)
+void FileLoaderProc(void)
 {
   
 }
@@ -221,13 +249,13 @@ void UpdateTaskProc(void)
 //******************************************************************************
 // Stop update task
 //******************************************************************************
-void UpdateTaskStop(void)
+void FileLoaderStop(void)
 {
   
 }
 
 // Временная функция
-bool UpdateTaskIsDone(uint32_t *crc)
+bool FileLoaderIsDone(uint32_t *crc)
 {
   if (gIsFileTransferDone == false)
   {

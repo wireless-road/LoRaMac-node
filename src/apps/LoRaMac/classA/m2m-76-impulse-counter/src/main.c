@@ -41,7 +41,7 @@
 #include "LmhpCompliance.h"
 #include "LmhpClockSync.h"
 #include "LmhpRemoteMcastSetup.h"
-#include "UpdateTask.h"
+#include "FileLoader.h"
 #include "version.h"
 #include "LiteDisk.h"
 #include "LiteDiskDefs.h"
@@ -241,34 +241,6 @@ volatile bool IsMcSessionStarted = false;
 extern Gpio_t Led1; // Tx
 extern Uart_t Uart;
 
-static void TestSaveUpdate(void)
-{
-  int Len = 0;
-  uint8_t Buff[112];
-  LT_FILE *f_out = LiteDiskFileOpen(UPDATE_FILE_NAME);
-  LT_FILE *f_in = LiteDiskFileOpen(RECOVERY_FILE_NAME);
-  
-  Len = LiteDiskFileClear(f_out); // Очищаем файл
-  if (Len <= 0)
-  {
-    SYSLOG_E("ERROR TEST CLEAR");
-  }  
-  
-  for (int offs = 0; offs < APP_SIZE; offs += Len)
-  {
-    Len = LiteDiskFileRead(f_in, offs, sizeof(Buff), Buff);
-    if (Len <= 0)
-    {
-      SYSLOG_E("ERROR TEST READ");
-    }
-    Len = LiteDiskFileWrite(f_out, offs, Len, Buff);
-    if (Len <= 0)
-    {
-      SYSLOG_E("ERROR TEST WRITE");
-    }    
-  }
-  
-}
 
 /*!
  * Main application entry point.
@@ -315,7 +287,7 @@ int main( void )
     LmHandlerPackageRegister( PACKAGE_ID_COMPLIANCE, &LmhpComplianceParams );
     LmHandlerPackageRegister( PACKAGE_ID_CLOCK_SYNC, NULL );
     LmHandlerPackageRegister( PACKAGE_ID_REMOTE_MCAST_SETUP, NULL );
-    if (UpdateTaskStart() != true)
+    if (FileLoaderStart() != true)
     {
       SYSLOG_E("ERROR START UPDATE TASK");
     }
@@ -336,7 +308,7 @@ int main( void )
         UplinkProcess( );
         
         // Update task
-        UpdateTaskProc();
+        FileLoaderProc();
 
         CRITICAL_SECTION_BEGIN( );
         if( IsMacProcessPending == 1 )
@@ -555,7 +527,7 @@ static void UplinkProcess( void )
     {
         if( IsMcSessionStarted == false )
         {
-            if( UpdateTaskIsDone(&Crc) == false )
+            if( FileLoaderIsDone(&Crc) == false )
             {
                 if( IsClockSynched == false )
                 {

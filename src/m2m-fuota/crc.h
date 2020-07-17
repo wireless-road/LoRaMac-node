@@ -2,15 +2,15 @@
 //
 //******************************************************************************
 
-#ifndef __UPDATE_TASK_H
-#define __UPDATE_TASK_H
+#ifndef __CRC_H
+#define __CRC_H
 
 //******************************************************************************
 // Included Files
 //******************************************************************************
 
 #include <stdint.h>
-#include <stdbool.h>
+
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
@@ -41,16 +41,9 @@ extern "C"
 // Public Function Prototypes
 //******************************************************************************
   
-// Start update task
-bool UpdateTaskStart(void);
+uint32_t crc32_iar(uint32_t crc, const uint8_t *buf, uint32_t len);
 
-// Update task time proc
-void UpdateTaskProc(void);
-
-// Stop update task
-void UpdateTaskStop(void);
-
-bool UpdateTaskIsDone(uint32_t *crc);
+uint32_t crc32_gcc(uint32_t crc, const uint8_t *buf, uint32_t len);
   
 #undef EXTERN
 #ifdef __cplusplus
@@ -59,4 +52,4 @@ bool UpdateTaskIsDone(uint32_t *crc);
 
 #endif /* __ASSEMBLY__ */
 
-#endif /* __UPDATE_TASK_H*/
+#endif /* __CRC_H */

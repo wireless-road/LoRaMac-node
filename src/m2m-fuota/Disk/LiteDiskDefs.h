@@ -16,7 +16,7 @@
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
-#define MAX_FILES                       2
+#define MAX_FILES                       3
 
 #define DISK                            AT25SF041_DISK
 
@@ -25,6 +25,9 @@
 
 #define UPDATE_FILE_NAME                "update"
 #define UPDATE_FILE_SIZE				(128*1024)
+
+#define TMP_FILE_NAME                   "temp"
+#define TMP_FILE_SIZE		        	(128*1024)
 
 //******************************************************************************
 // Public Types
