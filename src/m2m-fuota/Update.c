@@ -73,7 +73,7 @@ UPDATE_RESULT UpdateApp(void)
 //******************************************************************************
 // Updates check
 //******************************************************************************
-UPDATE_RESULT UpdateCheck(INFO_STRUCT *InfoApp)
+UPDATE_RESULT UpdateCheck(INFO_STRUCT *InfoUpdate)
 {
   INFO_STRUCT Info;
   bool ResGetInfo;
@@ -102,10 +102,8 @@ UPDATE_RESULT UpdateCheck(INFO_STRUCT *InfoApp)
     SYSLOG_E("BAD ID OR NOT VERSION");
     return UPDATE_RESULT_FAIL;
   }
-  if ((InfoApp) && (Info.version[0] == InfoApp->version[0]) && (Info.version[1] == InfoApp->version[1]) && (Info.version[2] == InfoApp->version[2]))
-  {
-    return UPDATE_RESULT_MISSING;
-  }
+
+  *InfoUpdate = Info;
   SYSLOG_I("CHECK OK");
   return UPDATE_RESULT_OK;
 }

@@ -125,8 +125,22 @@ return (BOOT_RESULT)RecoveryApp();
 //******************************************************************************
 static BOOT_RESULT BootloaderCheckUpdate(INFO_STRUCT *InfoApp)
 {
-  
-  return (BOOT_RESULT)UpdateCheck(InfoApp);
+	UPDATE_RESULT Result;
+	INFO_STRUCT InfoUpdate;
+
+	Result = UpdateCheck(&InfoUpdate);
+	if(Result != UPDATE_RESULT_OK)
+		return (BOOT_RESULT)Result;
+
+	if (InfoUpdate.dev_id != InfoApp->dev_id)
+	{
+		return UPDATE_RESULT_MISSING;
+	}
+	if ((InfoUpdate.version[0] == InfoApp->version[0]) && (InfoUpdate.version[1] == InfoApp->version[1]) && (InfoUpdate.version[2] == InfoApp->version[2]))
+	{
+		return UPDATE_RESULT_MISSING;
+	}
+	return BOOT_OK;
 }
 
 //******************************************************************************
