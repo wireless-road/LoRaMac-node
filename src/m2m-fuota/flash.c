@@ -97,7 +97,7 @@ static bool FlashWrite(uint32_t StartAddr, uint32_t Size, uint8_t *Buff)
 // Public Functions
 //******************************************************************************
 
-FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size,LT_FILE *f)
+FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size, LT_FILE *f)
 {
 	uint8_t Buff[FLASH_PAGE_SIZE];
 	uint32_t Offs;
@@ -117,7 +117,7 @@ FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size,LT_FILE *f)
 		Result = LiteDiskFileRead(f, Offs, sizeof(Buff), Buff);
 		if (Result != sizeof(Buff))
 		{
-                  SYSLOG_E("ERROR READ IMAGE. File:%s, Offs = %d", f->Name ,Offs);
+            SYSLOG_E("ERROR READ IMAGE. File:%s, Offs = %d", f->Name ,Offs);
 			//HAL_FLASH_Lock();
 			return FLASH_ERRROR;
 		}
@@ -132,5 +132,44 @@ FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size,LT_FILE *f)
 	}
 	//HAL_FLASH_Lock();
 	return FLASH_OK;
+}
+
+FLASH_RESULT FlashSaveToFile(uint32_t StartAddr, uint32_t Size, LT_FILE *f)
+{
+	  int Result;
+	  uint32_t AmountWrited;
+	  uint8_t *pData;
+	  uint8_t Buff[256];
+
+	  SYSLOG_I("SAVE");
+	  if (LiteDiskIsInit() == false)
+	  {
+	    return FLASH_ERRROR;
+	  }
+	  if(!f)
+	  {
+	    SYSLOG_E("FILE NOT OPEN");
+	    return FLASH_ERRROR;
+	  }
+	  pData = (uint8_t*)(APP_START_ADDRESS);
+	  Result = LiteDiskFileClear(f); // Очищаем файл
+	  SYSLOG_I("CLEAR SIZE=%d", Result);
+	  if(Result < 0) return FLASH_ERRROR;
+	  for(AmountWrited = 0; AmountWrited < APP_SIZE;)//
+	  {
+	    memcpy(Buff, &pData[AmountWrited], sizeof(Buff));
+	    Result = LiteDiskFileWrite(f, AmountWrited, sizeof(Buff), Buff);
+	    if(Result == sizeof(Buff))
+	    {
+	      AmountWrited += Result;
+	    }
+	    else
+	    {
+	      SYSLOG_E("WRITE ERR=%d. AmountWrited = %d", Result, AmountWrited);
+	      return FLASH_ERRROR;
+	    }
+	  }
+	  SYSLOG_I("SAVE SIZE=%d", AmountWrited);
+	  return FLASH_OK;
 }
 

@@ -51,15 +51,8 @@ static LmhpFragmentationParams_t gFragmentationParams =
     .OnDone = OnFragDone
 };
 
-/*
- * Indicates if the file transfer is done
- */
-static volatile bool gIsFileTransferDone = false;
 
-/*
- *  Received file computed CRC32
- */
-static volatile uint32_t gFileRxCrc = 0;
+static volatile FILE_LOADER_STAT gStat = FILE_LOADER_WAIT;
 
 static LT_FILE *gUpdateFile = NULL;
 
@@ -71,65 +64,6 @@ static LT_FILE *gUpdateFile = NULL;
 // Private Functions
 //******************************************************************************
 
-static uint32_t UpdateCrc( uint32_t Size )
-{
-  uint8_t Data[256];
-  uint32_t Len;
-
-    // CRC initial value
-    uint32_t crc = 0;
-
-    if( gUpdateFile == NULL )
-    {
-        return 0;
-    }
-
-    for( uint32_t i = 0; i < Size; i += 256 )
-    {
-        Len = LiteDiskFileRead(gUpdateFile, i, 256, Data);
-        if (Len <= 0)
-        {
-          return 0;
-        }
-        crc = crc32_gcc(crc, Data, 256);
-        //SYSLOG_D("LoadData offs = %d", i);
-        //SYSDUMP_D("DATA: ", Data, 256);
-    }
-
-    return crc;
-}
-
-static void CopyAndCheck()
-{
-	LT_FILE *fRead, *fWrite;
-	uint8_t Buff[256];
-	int Len = 0;
-	fRead = LiteDiskFileOpen(TMP_FILE_NAME);
-	fWrite = LiteDiskFileOpen(UPDATE_FILE_NAME);
-
-	if(LiteDiskFileClear(gUpdateFile) < 0) // Очищаем файл
-	{
-	  SYSLOG_E("ERROR CLEAR FILE");
-	    return;
-	}
-
-	for(int i = 0; i < APP_SIZE; i += 256)
-	{
-		  Len = LiteDiskFileRead(fRead, i, 256, Buff);
-		  if (Len <= 0)
-		  {
-		    SYSLOG_E("ERROR READ FILE");
-		    return;
-		  }
-		  Len = LiteDiskFileRead(fWrite, i, 256, Buff);
-		  if (Len <= 0)
-		  {
-		    SYSLOG_E("ERROR READ FILE");
-		    return;
-		  }
-	}
-	UpdateCheck(NULL);
-}
 
 static uint8_t FragDecoderBegin( uint32_t size  )
 {
@@ -151,6 +85,7 @@ static uint8_t FragDecoderBegin( uint32_t size  )
     SYSLOG_E("ERROR CLEAR FILE");
     return -1;
   }    
+  gStat = FILE_LOADER_PROC;
   return 0; // Success
 }
 
@@ -210,10 +145,8 @@ static void OnFragProgress( uint16_t fragCounter, uint16_t fragNb, uint8_t fragS
 
 static void OnFragDone( int32_t status, uint32_t size )
 {
-    gFileRxCrc = UpdateCrc(size);
-    CopyAndCheck();
-    gIsFileTransferDone = true;
-    SYSLOG_D("FINISHED. STATUS %d, CRC = 0x%08X", status, gFileRxCrc);
+	gStat = FILE_LOADER_ANALYSIS;
+    SYSLOG_D("FINISHED. STATUS %d, SIZE = %d", status, size);
 }
 
 //******************************************************************************
@@ -231,8 +164,8 @@ bool FileLoaderStart(void)
     SYSLOG_E("NOT OPEN FILE");
     return false;
   }
-  gFileRxCrc = 0;
-  gIsFileTransferDone = false;
+
+  gStat = FILE_LOADER_WAIT;
   LmHandlerPackageRegister( PACKAGE_ID_FRAGMENTATION, &gFragmentationParams );
   SYSLOG_I("TASK STARTED");
   return true;
@@ -243,7 +176,13 @@ bool FileLoaderStart(void)
 //******************************************************************************
 void FileLoaderProc(void)
 {
-  
+  switch(gStat)
+  {
+  case FILE_LOADER_WAIT:
+  case FILE_LOADER_PROC:
+  default:
+	  break;
+  }
 }
 
 //******************************************************************************
@@ -254,16 +193,14 @@ void FileLoaderStop(void)
   
 }
 
-// Временная функция
-bool FileLoaderIsDone(uint32_t *crc)
+
+//******************************************************************************
+// Get upload stat
+//******************************************************************************
+FILE_LOADER_STAT FileLoaderGetStat(FILE_LOADER_INFO *Info)
 {
-  if (gIsFileTransferDone == false)
-  {
-    *crc = 0;
-    return false;
-  }
-  *crc = gFileRxCrc;
-  return true;
+  memset(Info, 0, sizeof(FILE_LOADER_INFO));
+  return gStat;
 }
 
 

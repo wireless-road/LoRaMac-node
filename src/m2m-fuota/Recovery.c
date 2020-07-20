@@ -88,41 +88,24 @@ RECOVERY_RESULT RecoveryCheck(void)
 //******************************************************************************
 RECOVERY_RESULT RecoverySave(void)
 {
-  int Result;
-  uint32_t AmountWrited;
-  uint8_t *pData;
-  uint8_t Buff[256];
   LT_FILE *f = LiteDiskFileOpen(RECOVERY_FILE_NAME);
 
-  SYSLOG_I("SAVE");
   if (LiteDiskIsInit() == false)
   {
+    SYSLOG_W("DISK NOT INIT");
     return RECOVERY_RESULT_MISSING;
   }
   if(!f)
   {
-    SYSLOG_E("FILE NOT OPEN");
-    return RECOVERY_RESULT_FAIL;    
-  }  
-  pData = (uint8_t*)(APP_START_ADDRESS);
-  Result = LiteDiskFileClear(f); // Очищаем файл
-  SYSLOG_I("CLEAR SIZE=%d", Result);
-  if(Result < 0) return RECOVERY_RESULT_FAIL;
-  for(AmountWrited = 0; AmountWrited < APP_SIZE;)//
-  {
-    memcpy(Buff, &pData[AmountWrited], sizeof(Buff));
-    Result = LiteDiskFileWrite(f, AmountWrited, sizeof(Buff), Buff);
-    if(Result == sizeof(Buff))
-    {
-      AmountWrited += Result;
-    }
-    else
-    {
-      SYSLOG_E("WRITE ERR=%d. AmountWrited = %d", Result, AmountWrited);
-      return RECOVERY_RESULT_FAIL;
-    }
+    SYSLOG_W("FILE NOT OPEN");
+    return RECOVERY_RESULT_FAIL;
   }
-  SYSLOG_I("SAVE SIZE=%d", AmountWrited);
+
+  if (FlashProgramApp(APP_START_ADDRESS, APP_SIZE, f) != FLASH_OK)
+  {
+    SYSLOG_E("ERR SAVE");
+    return RECOVERY_RESULT_FAIL;
+  }
   return RECOVERY_RESULT_OK;
 }        
 
@@ -143,7 +126,7 @@ RECOVERY_RESULT RecoveryApp(void)
     SYSLOG_W("FILE NOT OPEN");
     return RECOVERY_RESULT_FAIL;    
   }    
-  if (FlashProgramApp(APP_START_ADDRESS, APP_SIZE, f) != FLASH_OK)
+  if (FlashSaveToFile(APP_START_ADDRESS, APP_SIZE, f) != FLASH_OK)
   {
     SYSLOG_E("ERR WRITE");
     return RECOVERY_RESULT_FAIL;

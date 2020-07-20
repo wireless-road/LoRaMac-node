@@ -50,6 +50,8 @@ extern "C"
 //******************************************************************************
 
 FLASH_RESULT FlashProgramApp(uint32_t StartAddr, uint32_t Size, LT_FILE *f);
+
+FLASH_RESULT FlashSaveToFile(uint32_t StartAddr, uint32_t Size, LT_FILE *f);
   
 #undef EXTERN
 #ifdef __cplusplus

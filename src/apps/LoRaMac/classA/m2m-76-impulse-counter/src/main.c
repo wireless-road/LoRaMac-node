@@ -509,7 +509,8 @@ static void StartTxProcess( LmHandlerTxEvents_t txEvent )
 
 static void UplinkProcess( void )
 {
-  uint32_t Crc;
+	FILE_LOADER_INFO Info;
+	FILE_LOADER_STAT Stat;
   
     LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
 
@@ -527,7 +528,8 @@ static void UplinkProcess( void )
     {
         if( IsMcSessionStarted == false )
         {
-            if( FileLoaderIsDone(&Crc) == false )
+        	Stat = FileLoaderGetStat(&Stat);
+            if(( Stat != FILE_LOADER_SUCCESS ) && ( Stat != FILE_LOADER_FAIL))
             {
                 if( IsClockSynched == false )
                 {
@@ -552,16 +554,20 @@ static void UplinkProcess( void )
             else
             {
                 AppDataBuffer[0] = 0x05; // FragDataBlockAuthReq
-                AppDataBuffer[1] = Crc & 0x000000FF;
-                AppDataBuffer[2] = ( Crc >> 8 ) & 0x000000FF;
-                AppDataBuffer[3] = ( Crc >> 16 ) & 0x000000FF;
-                AppDataBuffer[4] = ( Crc >> 24 ) & 0x000000FF;
-
+                AppDataBuffer[1] = (uint8_t)(Info.Type);
+                AppDataBuffer[2] = Info.CrcCalc & 0x000000FF;
+                AppDataBuffer[3] = ( Info.CrcCalc >> 8 ) & 0x000000FF;
+                AppDataBuffer[4] = ( Info.CrcCalc >> 16 ) & 0x000000FF;
+                AppDataBuffer[5] = ( Info.CrcCalc >> 24 ) & 0x000000FF;
+                AppDataBuffer[6] = Info.CrcGet & 0x000000FF;
+                AppDataBuffer[7] = ( Info.CrcGet >> 8 ) & 0x000000FF;
+                AppDataBuffer[8] = ( Info.CrcGet >> 16 ) & 0x000000FF;
+                AppDataBuffer[9] = ( Info.CrcGet >> 24 ) & 0x000000FF;
                 // Send FragAuthReq
                 LmHandlerAppData_t appData =
                 {
                     .Buffer = AppDataBuffer,
-                    .BufferSize = 5,
+                    .BufferSize = 10,
                     .Port = 201
                 };
                 status = LmHandlerSend( &appData, LORAMAC_HANDLER_UNCONFIRMED_MSG );
