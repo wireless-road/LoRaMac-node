@@ -48,10 +48,11 @@ static int at25sf041_init(void *InitStr);
 static int at25sf041_erase_sector(uint32_t Sector);
 static int at25sf041_sector_read(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
 static int at25sf041_sector_write(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
+static int at25sf041_sector_re_write(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
 //******************************************************************************
 // Private Data
 //******************************************************************************
-
+static uint8_t Buff[AT25SF041_SECTOR_SIZE];
 //******************************************************************************
 // Public Data
 //******************************************************************************
@@ -60,10 +61,11 @@ const LT_DISK AT25SF041_DISK =
 {
 	.SectorSize = AT25SF041_SECTOR_SIZE,
 	.TotalSectors = AT25SF041_SECTOR_TOTAL,
-	.disk_initialize = at25sf041_init,
-	.disk_sector_erase = at25sf041_erase_sector,
-	.disk_sector_read = at25sf041_sector_read,
-	.disk_sector_write = at25sf041_sector_write,
+	.DiskInitialize = at25sf041_init,
+	.DiskSectorErase = at25sf041_erase_sector,
+	.DiskSectorRead = at25sf041_sector_read,
+	.DiskSectorWrite = at25sf041_sector_write,
+	.DiskSectorReWrite = at25sf041_sector_re_write,
 };
 
 at25sf041_t at25sf041 = {0};
@@ -313,6 +315,39 @@ static int at25sf041_sector_read(uint32_t Sector, uint32_t Offs, uint32_t Size, 
 	AT25AT25SF041InOut(&cmd, NULL, 0, Data, Amount);
 	return Amount;
 }
+
+//******************************************************************************
+// Disk rewrire data
+static int  at25sf041_sector_re_write(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data)
+{
+	int Result;
+	uint32_t Amount;
+
+	if (Sector >= AT25SF041_SECTOR_TOTAL) return DRESULT_PARERR;
+	if (Offs >= AT25SF041_SECTOR_SIZE) return DRESULT_PARERR;
+	if (Size > (AT25SF041_SECTOR_SIZE - Offs)) Amount = (AT25SF041_SECTOR_SIZE - Offs);
+	else Amount = Size;
+
+	Result = at25sf041_sector_read(Sector, 0 , sizeof(Buff), Buff);
+	if (Result != sizeof(Buff))
+	{
+		return DRESULT_ERROR;
+	}
+	Result = at25sf041_erase_sector(Sector);
+	if (Result != DRESULT_OK) return Result;
+	for (int i = 0; i < Amount; i++)
+	{
+		Buff[Offs + i] = Data[i];
+	}
+	Result = at25sf041_sector_write(Sector, 0 , sizeof(Buff), Buff);
+	if (Result != sizeof(Buff))
+	{
+		return DRESULT_ERROR;
+	}
+
+	return Amount;
+}
+
 
 //******************************************************************************
 // Public Functions

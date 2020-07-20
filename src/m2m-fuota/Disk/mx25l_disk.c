@@ -44,10 +44,10 @@ const LT_DISK MX25L_DISK =
 {
 	.SectorSize = MX25L_DISK_SECTOR_SIZE,
 	.TotalSectors = MX25L_DISK_SECTOR_TOTAL,
-	.disk_initialize = mx25l_disk_init,
-	.disk_sector_erase = mx25l_disk_erase_sector,
-	.disk_sector_read = mx25l_disk_sector_read,
-	.disk_sector_write = mx25l_disk_sector_write,
+	.DiskInitialize = mx25l_disk_init,
+	.DiskSectorErase = mx25l_disk_erase_sector,
+	.DiskSectorRead = mx25l_disk_sector_read,
+	.DiskSectorWrite = mx25l_disk_sector_write,
 };
 
 //******************************************************************************

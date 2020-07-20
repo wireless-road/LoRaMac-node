@@ -52,9 +52,9 @@ DRESULT LiteDiskInit(LT_DISK *Disk, void *DiskInitStr, LT_FILE_DEFS *Table)
   DRESULT Result;
   uint32_t Sector = 0;
   /* Инициализируем микпросхему, если требуеться */
-  if (Disk->disk_initialize)
+  if (Disk->DiskInitialize)
   {
-    Result = (DRESULT)Disk->disk_initialize(DiskInitStr);
+    Result = (DRESULT)Disk->DiskInitialize(DiskInitStr);
       if (Result != DRESULT_OK)
       {
         return Result;
@@ -98,7 +98,7 @@ int LiteDiskFileClear(LT_FILE *f)
 {
   DRESULT Result;
 
-  if ((!IoDisk) || (!IoDisk->disk_sector_erase))
+  if ((!IoDisk) || (!IoDisk->DiskSectorErase))
   {
     return DRESULT_NOTRDY;
   }
@@ -106,7 +106,7 @@ int LiteDiskFileClear(LT_FILE *f)
   /* Стираем посекторно */
   for (uint32_t SectorCount = f->StartSector; SectorCount < (f->StartSector + f->AmountSectors); SectorCount++)
   {
-    Result = (DRESULT)IoDisk->disk_sector_erase(SectorCount);
+    Result = (DRESULT)IoDisk->DiskSectorErase(SectorCount);
     if (Result != DRESULT_OK)
     {
       return Result;
@@ -124,7 +124,7 @@ int LiteDiskFileWrite(LT_FILE *f, uint32_t Offs, uint32_t Size, uint8_t *Data)
   uint32_t tWrited;
   int SectorWrited;
 
-  if ((!IoDisk) || (!IoDisk->disk_sector_write))
+  if ((!IoDisk) || (!IoDisk->DiskSectorWrite))
   {
     return DRESULT_WRPRT;
   }
@@ -138,7 +138,40 @@ int LiteDiskFileWrite(LT_FILE *f, uint32_t Offs, uint32_t Size, uint8_t *Data)
   else SectorWriteSize = Size;
   while ( (tWrited < Size) && (f->AmountSectors))
   {
-    SectorWrited = IoDisk->disk_sector_write((Sector + f->StartSector), SectorOffs, SectorWriteSize, &Data[tWrited]);
+    SectorWrited = IoDisk->DiskSectorWrite((Sector + f->StartSector), SectorOffs, SectorWriteSize, &Data[tWrited]);
+    if (SectorWrited < 0) return SectorWrited;
+    tWrited += SectorWrited;
+    Sector++;
+    SectorOffs = 0;
+    if ((Size - tWrited) < IoDisk->SectorSize) SectorWriteSize = (Size - tWrited); else SectorWriteSize = IoDisk->SectorSize;
+  }
+  return tWrited;
+}
+
+//******************************************************************************
+// Запись c модификацией данных в "файл"
+//******************************************************************************
+int LiteDiskFileReWrite(LT_FILE *f, uint32_t Offs, uint32_t Size, uint8_t *Data)
+{
+  uint32_t Sector, SectorOffs, SectorWriteSize;
+  uint32_t tWrited;
+  int SectorWrited;
+
+  if ((!IoDisk) || (!IoDisk->DiskSectorReWrite))
+  {
+    return DRESULT_WRPRT;
+  }
+   if (!f) return DRESULT_PARERR;
+  /* Пишем */
+  // Начальная инициализация переменных
+  tWrited = 0;
+  Sector = (Offs/ IoDisk->SectorSize);
+  SectorOffs = (Offs % IoDisk->SectorSize);
+  if ((IoDisk->SectorSize - SectorOffs) < Size) SectorWriteSize = (IoDisk->SectorSize - SectorOffs);
+  else SectorWriteSize = Size;
+  while ( (tWrited < Size) && (f->AmountSectors))
+  {
+    SectorWrited = IoDisk->DiskSectorReWrite((Sector + f->StartSector), SectorOffs, SectorWriteSize, &Data[tWrited]);
     if (SectorWrited < 0) return SectorWrited;
     tWrited += SectorWrited;
     Sector++;
@@ -157,7 +190,7 @@ int LiteDiskFileRead(LT_FILE *f, uint32_t Offs, uint32_t Size, uint8_t *Data)
   uint32_t tRead;
   int SectorRead;
 
-  if ((!IoDisk) || (!IoDisk->disk_sector_read))
+  if ((!IoDisk) || (!IoDisk->DiskSectorRead))
   {
     return DRESULT_NOTRDY;
   }
@@ -171,7 +204,7 @@ int LiteDiskFileRead(LT_FILE *f, uint32_t Offs, uint32_t Size, uint8_t *Data)
   else SectorReadSize = Size;
   while ( (tRead < Size) && (Sector < f->AmountSectors))
   {
-    SectorRead = IoDisk->disk_sector_read((Sector + f->StartSector), SectorOffs, SectorReadSize, &Data[tRead]);
+    SectorRead = IoDisk->DiskSectorRead((Sector + f->StartSector), SectorOffs, SectorReadSize, &Data[tRead]);
     if (SectorRead < 0) return SectorRead;
     tRead += SectorRead;
     Sector++;

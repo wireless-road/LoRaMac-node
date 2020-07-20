@@ -22,7 +22,7 @@
 
 #define AT25SF041_SECTOR_SIZE	        4096
 #define AT25SF041_SECTOR_TOTAL	        128
-#define AT25SF041_PAGE_SIZE		256
+#define AT25SF041_PAGE_SIZE				256
 
 //******************************************************************************
 // Public Types

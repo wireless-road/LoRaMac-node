@@ -34,10 +34,11 @@ typedef struct _LT_DISK
 {
 	uint32_t SectorSize;
 	uint32_t TotalSectors;
-	int (*disk_initialize)(void *InitStr);
-	int (*disk_sector_read)(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
-	int (*disk_sector_write)(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
-	int (*disk_sector_erase)(uint32_t Sector);
+	int (*DiskInitialize)(void *InitStr);
+	int (*DiskSectorRead)(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
+	int (*DiskSectorWrite)(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
+	int (*DiskSectorReWrite)(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
+	int (*DiskSectorErase)(uint32_t Sector);
 } LT_DISK;
 
 typedef struct _LT_FILE
@@ -86,6 +87,7 @@ LT_FILE *LiteDiskFileOpen(char *Name);
 int LiteDiskFileClear(LT_FILE *f);
 int LiteDiskFileWrite(LT_FILE *f, uint32_t Offs, uint32_t Size, uint8_t *Data);
 int LiteDiskFileRead(LT_FILE *f, uint32_t Offs, uint32_t Size, uint8_t *Data);
+int LiteDiskFileReWrite(LT_FILE *f, uint32_t Offs, uint32_t Size, uint8_t *Data);
   
 #undef EXTERN
 #ifdef __cplusplus
