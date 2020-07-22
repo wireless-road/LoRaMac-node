@@ -528,7 +528,7 @@ static void UplinkProcess( void )
     {
         if( IsMcSessionStarted == false )
         {
-        	Stat = FileLoaderGetStat(&Stat);
+        	Stat = FileLoaderGetStat(&Info);
             if(( Stat != FILE_LOADER_SUCCESS ) && ( Stat != FILE_LOADER_FAIL))
             {
                 if( IsClockSynched == false )
@@ -553,21 +553,28 @@ static void UplinkProcess( void )
             }
             else
             {
-                AppDataBuffer[0] = 0x05; // FragDataBlockAuthReq
-                AppDataBuffer[1] = (uint8_t)(Info.Type);
-                AppDataBuffer[2] = Info.CrcCalc & 0x000000FF;
-                AppDataBuffer[3] = ( Info.CrcCalc >> 8 ) & 0x000000FF;
-                AppDataBuffer[4] = ( Info.CrcCalc >> 16 ) & 0x000000FF;
-                AppDataBuffer[5] = ( Info.CrcCalc >> 24 ) & 0x000000FF;
-                AppDataBuffer[6] = Info.CrcGet & 0x000000FF;
-                AppDataBuffer[7] = ( Info.CrcGet >> 8 ) & 0x000000FF;
-                AppDataBuffer[8] = ( Info.CrcGet >> 16 ) & 0x000000FF;
-                AppDataBuffer[9] = ( Info.CrcGet >> 24 ) & 0x000000FF;
+            	size_t pBuff = 0;
+            	SYSLOG_I("Load info send. Stat=%d,Type=%d,CrcCalc=0x%08X,CrcGet=0x%08X,DataSize=%u", Stat, Info.Type, Info.CrcCalc, Info.CrcGet, Info.DataSize);
+                AppDataBuffer[pBuff++] = 0x05; // FragDataBlockAuthReq
+                AppDataBuffer[pBuff++] = (uint8_t)(Stat);
+                AppDataBuffer[pBuff++] = (uint8_t)(Info.Type);
+                AppDataBuffer[pBuff++] = Info.CrcCalc & 0x000000FF;
+                AppDataBuffer[pBuff++] = ( Info.CrcCalc >> 8 ) & 0x000000FF;
+                AppDataBuffer[pBuff++] = ( Info.CrcCalc >> 16 ) & 0x000000FF;
+                AppDataBuffer[pBuff++] = ( Info.CrcCalc >> 24 ) & 0x000000FF;
+                AppDataBuffer[pBuff++] = Info.CrcGet & 0x000000FF;
+                AppDataBuffer[pBuff++] = ( Info.CrcGet >> 8 ) & 0x000000FF;
+                AppDataBuffer[pBuff++] = ( Info.CrcGet >> 16 ) & 0x000000FF;
+                AppDataBuffer[pBuff++] = ( Info.CrcGet >> 24 ) & 0x000000FF;
+                AppDataBuffer[pBuff++] = Info.DataSize & 0x000000FF;
+                AppDataBuffer[pBuff++] = ( Info.DataSize >> 8 ) & 0x000000FF;
+                AppDataBuffer[pBuff++] = ( Info.DataSize >> 16 ) & 0x000000FF;
+                AppDataBuffer[pBuff++] = ( Info.DataSize >> 24 ) & 0x000000FF;
                 // Send FragAuthReq
                 LmHandlerAppData_t appData =
                 {
                     .Buffer = AppDataBuffer,
-                    .BufferSize = 10,
+                    .BufferSize = pBuff,
                     .Port = 201
                 };
                 status = LmHandlerSend( &appData, LORAMAC_HANDLER_UNCONFIRMED_MSG );

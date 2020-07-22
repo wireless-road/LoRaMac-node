@@ -30,9 +30,12 @@ typedef enum _FILE_LOADER_STAT
 
 typedef enum _FILE_LOADER_TYPE
 {
-	FILE_LOADER_UPDATE 	 = 1, // Файл обновления
-	FILE_LOADER_PATCH	 = 2, // Исправление
-	FILE_LOADER_SETTINGS = 3, // Настройки
+	FILE_LOADER_TYPE_UPDATE 	= 1, // Файл обновления
+	FILE_LOADER_TYPE_PATCH	 	= 2, // Исправление
+	FILE_LOADER_TYPE_SETTINGS 	= 3, // Настройки
+	FILE_LOADER_TYPE_DATA 	 	= 4, // Произвольные данные (для тестирования)
+	/* Новые типы добавлять сюда */
+	FILE_LOADER_TYPE_COUNT,
 } FILE_LOADER_TYPE;
 
 typedef struct  _FILE_LOADER_INFO
@@ -40,6 +43,7 @@ typedef struct  _FILE_LOADER_INFO
 	FILE_LOADER_TYPE Type;
 	uint32_t CrcCalc;
 	uint32_t CrcGet;
+	uint32_t DataSize;
 } FILE_LOADER_INFO;
 
 typedef struct _FILE_LOADER_HEADER
@@ -53,14 +57,15 @@ typedef struct _FILE_LOADER_HEADER
 typedef struct _FILE_UPDATE_HEADER
 {
 	VER_STRUCT Ver; // Версия файла обновления
-	uint32_t Size; // Размер данных
 	uint32_t Crc; // CRC, который должен быть записан в конце флэши
+	uint32_t Size; // Размер данных
 } __attribute__((__packed__ )) FILE_UPDATE_HEADER;
 
 typedef struct _FILE_PATCH_HEADER
 {
 	VER_STRUCT NewVer; // Версия на которую переходим
 	VER_STRUCT VerOldFirm; // Версия которая должна быть у преведущей прошивки
+	uint32_t Crc; // CRC, который должен быть записан в конце флэши
 	uint32_t NbParts; // Количество фрагментов, подлежаших обновлению
 } __attribute__((__packed__ )) FILE_PATCH_HEADER;
 
