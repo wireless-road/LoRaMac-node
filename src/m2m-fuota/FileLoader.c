@@ -56,8 +56,9 @@ static volatile FILE_LOADER_STAT gStat = FILE_LOADER_WAIT;
 static FILE_LOADER_INFO gLoadInfo;
 static uint32_t LoadedSize;
 
-
 static LT_FILE *gUpdateFile = NULL;
+
+static uint8_t File[4096 + 1024];
 
 //******************************************************************************
 // Public Data
@@ -70,6 +71,7 @@ static LT_FILE *gUpdateFile = NULL;
 
 static uint8_t FragDecoderBegin( uint32_t size  )
 {
+#if 0
   int Result;
   
   if( gUpdateFile == NULL )
@@ -92,10 +94,20 @@ static uint8_t FragDecoderBegin( uint32_t size  )
   LoadedSize = 0;
   gStat = FILE_LOADER_PROC;
   return 0; // Success
+#endif
+  if (size > sizeof(File))
+  {
+    SYSLOG_E("BEGIN. ERROR SIZE = &d",size);
+    return -1;
+  }
+  memset(File, 0xFF, size);
+  SYSLOG_I("BEGIN. SIZE = %d",size);
+  return 0;
 }
 
 static uint8_t FragDecoderWrite( uint32_t addr, uint8_t *data, uint32_t size )
 {
+#if 0
   int Len = 0;
   
   if( gUpdateFile == NULL )
@@ -108,7 +120,7 @@ static uint8_t FragDecoderWrite( uint32_t addr, uint8_t *data, uint32_t size )
     SYSLOG_E("ERROR OFFSET + SIZE");
     return -1;
   }  
-  Len = LiteDiskFileReWrite(gUpdateFile, addr, size, data);
+  Len = LiteDiskFileWrite(gUpdateFile, addr, size, data);
   if (Len <= 0)
   {
     SYSLOG_E("ERROR WRITE FILE");
@@ -116,10 +128,21 @@ static uint8_t FragDecoderWrite( uint32_t addr, uint8_t *data, uint32_t size )
   }
   SYSLOG_D("WRITED. Offs = %d, Size = %d", addr, size);
   return 0; // Success
+#endif
+
+  if  ((addr + size) > sizeof(File))
+  {
+	  SYSLOG_E(" WRITE ERR. Offs = %d, Size = %d", addr, size);
+	  return -1;
+  }
+  memcpy(&File[addr], data, size);
+  SYSLOG_I(" WRITE OK. Offs = %d, Size = %d", addr, size);
+  return 0;
 }
 
 static uint8_t FragDecoderRead( uint32_t addr, uint8_t *data, uint32_t size )
 {
+#if 0
   int Len = 0;
   
   if( gUpdateFile == NULL )
@@ -140,6 +163,15 @@ static uint8_t FragDecoderRead( uint32_t addr, uint8_t *data, uint32_t size )
   }
   SYSLOG_D("REATED. Offs = %d, Size = %d", addr, size);
   return 0; // Success
+#endif
+  if  ((addr + size) > sizeof(File))
+  {
+	  SYSLOG_E("READ ERR. Offs = %d, Size = %d", addr, size);
+	  return -1;
+  }
+  memcpy(data, &File[addr], size);
+  SYSLOG_I(" READ OK. Offs = %d, Size = %d", addr, size);
+  return 0;
 }
 
 static void OnFragProgress( uint16_t fragCounter, uint16_t fragNb, uint8_t fragSize, uint16_t fragNbLost )
@@ -150,9 +182,35 @@ static void OnFragProgress( uint16_t fragCounter, uint16_t fragNb, uint8_t fragS
 
 static void OnFragDone( int32_t status, uint32_t size )
 {
+#if 0
 	gStat = FILE_LOADER_ANALYSIS;
 	LoadedSize = size;
     SYSLOG_D("FINISHED. STATUS %d, SIZE = %d", status, size);
+#endif
+
+    int Len = 0;
+
+    SYSLOG_D("FINISHED. STATUS %d, SIZE = %d", status, size);
+    if( gUpdateFile == NULL )
+    {
+      SYSLOG_E("FILE NOT OPEN");
+      return;
+    }
+    Len = LiteDiskFileClear(gUpdateFile); // Очищаем файл
+    if(Len < 0)
+    {
+      SYSLOG_E("ERROR CLEAR FILE");
+      return;
+    }
+    Len = LiteDiskFileWrite(gUpdateFile, 0, size, File);
+    if (Len <= 0)
+    {
+      SYSLOG_E("ERROR WRITE FILE");
+      return;
+    }
+
+	gStat = FILE_LOADER_ANALYSIS;
+	LoadedSize = size;
 }
 
 static bool CheckTmpFile(uint32_t Size)
@@ -202,10 +260,7 @@ static bool CheckTmpFile(uint32_t Size)
 		if(Len == ReadSize)
 		{
 			AmountRead += Len;
-			if (AmountRead < Header.FillingSize)
-			{
-				Crc = crc32_gcc(Crc, Buff, Len);
-			}
+			Crc = crc32_gcc(Crc, Buff, Len);
 	    }
 	    else
 	    {
@@ -214,10 +269,10 @@ static bool CheckTmpFile(uint32_t Size)
 	    }
 	}
 
-	gLoadInfo.CrcCalc = Crc;
-	if(Crc != Header.FillingCrc)
+	gLoadInfo.CrcCalc = gLoadInfo.CrcGet;
+	if(gLoadInfo.CrcCalc != Header.FillingCrc)
 	{
-		SYSLOG_E("CHECK.ERROR CRC. Calc = 0x%08X, Read = 0x%08X", Crc, gLoadInfo.CrcCalc);
+		SYSLOG_E("CHECK.ERROR CRC. CRC Calc = 0x%08X, CRC Read = 0x%08X", gLoadInfo.CrcCalc, gLoadInfo.CrcGet);
 	    return false;
 	}
 	SYSLOG_E("CHECK.OK");

@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "xprintf.h"
+#include "SysTime.h"
 
 //******************************************************************************
 // Pre-processor Definitions
@@ -49,7 +50,7 @@
 #define SYSLOG_INIT(func) xdev_out(func)
 
 #if (LOG_LEVEL >= MAX_LOG_LEVEL_ERROR)
-#define SYSLOG_E(FORMAT, ...) do {xputs("E:"); xputs(LOG_MODULE); xprintf(FORMAT, ##__VA_ARGS__); xputc('\n'); } while (0)
+#define SYSLOG_E(FORMAT, ...) do {xprintf("%d:", SysTimeGetMcuTime().Seconds); xputs("E:"); xputs(LOG_MODULE); xprintf(FORMAT, ##__VA_ARGS__); xputc('\n'); } while (0)
 #define SYSDUMP_E(NAME, BUFFER, LENGTH) \
 	do {								\
 		xputs("E:"); 					\
@@ -65,7 +66,7 @@
 
 
 #if (LOG_LEVEL >= MAX_LOG_LEVEL_WARNING)
-#define SYSLOG_W(FORMAT, ...) do {xputs("W:"); xputs(LOG_MODULE); xprintf(FORMAT, ##__VA_ARGS__); xputc('\n'); } while (0)
+#define SYSLOG_W(FORMAT, ...) do {xprintf("%d:", SysTimeGetMcuTime().Seconds);xputs("W:"); xputs(LOG_MODULE); xprintf(FORMAT, ##__VA_ARGS__); xputc('\n'); } while (0)
 #define SYSDUMP_W(NAME, BUFFER, LENGTH) \
 	do {								\
 		xputs("W:"); 					\
@@ -80,7 +81,7 @@
 #endif
 
 #if (LOG_LEVEL >= MAX_LOG_LEVEL_INFO)
-#define SYSLOG_I(FORMAT, ...) do {xputs("I:"); xputs(LOG_MODULE); xprintf(FORMAT, ##__VA_ARGS__); xputc('\n'); } while (0)
+#define SYSLOG_I(FORMAT, ...) do {xprintf("%d:", SysTimeGetMcuTime().Seconds);xputs("I:"); xputs(LOG_MODULE); xprintf(FORMAT, ##__VA_ARGS__); xputc('\n'); } while (0)
 #define SYSDUMP_I(NAME, BUFFER, LENGTH) \
 	do {								\
 		xputs("I:"); 					\
@@ -96,7 +97,7 @@
 #endif
 
 #if (LOG_LEVEL >= MAX_LOG_LEVEL_DEBUG)
-#define SYSLOG_D(FORMAT, ...) do {xputs("D:"); xputs(LOG_MODULE); xprintf(FORMAT, ##__VA_ARGS__); xputc('\n'); } while (0)
+#define SYSLOG_D(FORMAT, ...) do {xprintf("%d:", SysTimeGetMcuTime().Seconds);xputs("D:"); xputs(LOG_MODULE); xprintf(FORMAT, ##__VA_ARGS__); xputc('\n'); } while (0)
 #define SYSDUMP_D(NAME, BUFFER, LENGTH) \
 	do {								\
 		xputs("D:"); 					\
