@@ -386,10 +386,11 @@ static void OnRxData( LmHandlerAppData_t* appData, LmHandlerRxParams_t* params )
     SYSLOG_I("ON RX DATA. PORT = %d,  WINDOW : %s, SIZE = %d, COUNT = %d", appData->Port, slotStrings[params->RxSlot], appData->BufferSize, params->DownlinkCounter );
 }
 
+extern uint32_t RxCount;
 static void OnClassChange( DeviceClass_t deviceClass )
 {
   SysTime_t curTime = SysTimeGet();
-  SYSLOG_I("Switch to Class %c done.  Time = %d ", "ABC"[deviceClass],  curTime.Seconds);
+  SYSLOG_I("Switch to Class %c done.  Time = %d RxCount = %d", "ABC"[deviceClass],  curTime.Seconds, RxCount);
 
     switch( deviceClass )
     {

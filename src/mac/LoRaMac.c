@@ -924,6 +924,7 @@ static void PrepareRxDoneAbort( void )
     UpdateRxSlotIdleState( );
 }
 
+uint32_t RxCount = 0;
 static void ProcessRadioRxDone( void )
 {
     LoRaMacHeader_t macHdr;
@@ -1068,6 +1069,7 @@ static void ProcessRadioRxDone( void )
             MacCtx.McpsIndication.McpsIndication = MCPS_CONFIRMED;
             // Intentional fall through
         case FRAME_TYPE_DATA_UNCONFIRMED_DOWN:
+        	RxCount++;
             // Check if the received payload size is valid
             getPhy.UplinkDwellTime = MacCtx.NvmCtx->MacParams.DownlinkDwellTime;
             getPhy.Datarate = MacCtx.McpsIndication.RxDatarate;

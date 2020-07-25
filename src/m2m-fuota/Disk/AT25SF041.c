@@ -10,7 +10,7 @@
 #include "delay.h"
 #include "stddef.h"
 #include "stdbool.h"
-#define LOG_LEVEL   MAX_LOG_LEVEL_INFO
+#define LOG_LEVEL   MAX_LOG_LEVEL_WARNING
 #define LOG_MODULE   "AT25SF041:"
 #include "syslog.h"
 
@@ -29,7 +29,7 @@
 #define CMD_READ_ARRAY 	 	   		0x03
 #define CMD_WRITE_ARRAY 	 	   	0x02
 
-#define TIMEOUT_STEP				10
+#define TIMEOUT_STEP				5
 
 //******************************************************************************
 // Private Types
@@ -122,7 +122,7 @@ static bool AT25AT25SFWaitReady(uint32_t Timeout)
 	while((Stat[0] & 1) && (Wait < Timeout));
 	SYSLOG_D("STAT0 = 0x%X, STAT1=0x%X");
 	if (Wait >= Timeout) return false;
-	DelayMs(100);
+	DelayMs(5);
 	return true;
 }
 
@@ -197,8 +197,10 @@ static int at25sf041_init(void *InitStr)
 
 	if (!InitStr) return DRESULT_PARERR;
 	GpioInit( &at25sf041.Nss, FLASH_DISK_NSS, PIN_OUTPUT, PIN_PUSH_PULL, PIN_PULL_UP, 1 );
-	GpioInit( &at25sf041.Power, FLASH_DISK_POWER, PIN_OUTPUT, PIN_PUSH_PULL, PIN_PULL_UP, 1 );
+	GpioInit( &at25sf041.Power, FLASH_DISK_POWER, PIN_OUTPUT, PIN_PUSH_PULL, PIN_PULL_UP, 0 );
 	at25sf041.Spi = (Spi_t*)InitStr;
+	DelayMs(100);
+	GpioInit( &at25sf041.Power, FLASH_DISK_POWER, PIN_OUTPUT, PIN_PUSH_PULL, PIN_PULL_UP, 1 );
 	DelayMs(100);
 	/*  Resume from Deep Power-Down */
 	cmd.opcode = CMD_RESUME_FROM_DPD;

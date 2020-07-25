@@ -220,6 +220,9 @@ static bool CheckTmpFile(uint32_t Size)
 	uint32_t ReadSize;
 	uint32_t Crc = 0;
 	uint8_t Buff[256];
+	uint32_t CrcCheck = 0;
+	CrcCheck = crc32_gcc(CrcCheck, &File[12], 4096);
+	SYSLOG_I("CHECK CRC = 0x%08X", CrcCheck);
 	/* Проверяем, проинициализирован ли файл*/
 	if( gUpdateFile == NULL )
 	{
@@ -256,7 +259,7 @@ static bool CheckTmpFile(uint32_t Size)
 	{
 		if ((Header.FillingSize - AmountRead) > sizeof(Buff)) ReadSize = sizeof(Buff);
 		else ReadSize = (Header.FillingSize - AmountRead);
-		Len = LiteDiskFileRead(gUpdateFile, AmountRead + sizeof(Header), ReadSize, Buff);
+		Len = LiteDiskFileRead(gUpdateFile, AmountRead + sizeof(FILE_LOADER_HEADER), ReadSize, Buff);
 		if(Len == ReadSize)
 		{
 			AmountRead += Len;
@@ -269,13 +272,13 @@ static bool CheckTmpFile(uint32_t Size)
 	    }
 	}
 
-	gLoadInfo.CrcCalc = gLoadInfo.CrcGet;
-	if(gLoadInfo.CrcCalc != Header.FillingCrc)
+	gLoadInfo.CrcCalc = Crc;
+	if(gLoadInfo.CrcCalc != gLoadInfo.CrcGet)
 	{
 		SYSLOG_E("CHECK.ERROR CRC. CRC Calc = 0x%08X, CRC Read = 0x%08X", gLoadInfo.CrcCalc, gLoadInfo.CrcGet);
 	    return false;
 	}
-	SYSLOG_E("CHECK.OK");
+	SYSLOG_I("CHECK.OK");
 	return true;
 }
 //******************************************************************************
