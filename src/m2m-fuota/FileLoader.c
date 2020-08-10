@@ -6,17 +6,21 @@
 // Included Files
 //******************************************************************************
    
+#include <String.h>
 #include "FileLoader.h"
 
 #include "LmHandler.h"
 #include "LmhpFragmentation.h"
 #include "LiteDisk.h"
 #include "LiteDiskDefs.h"
+#include "Update.h"
 #include "crc.h"
 
 #define LOG_LEVEL   MAX_LOG_LEVEL_DEBUG
 #define LOG_MODULE  "FLOADER:"
 #include "syslog.h"
+
+
 
 //******************************************************************************
 // Pre-processor Definitions
@@ -54,11 +58,13 @@ static LmhpFragmentationParams_t gFragmentationParams =
 
 static volatile FILE_LOADER_STAT gStat = FILE_LOADER_WAIT;
 static FILE_LOADER_INFO gLoadInfo;
-static uint32_t LoadedSize;
 
-static LT_FILE *gUpdateFile = NULL;
+static LT_FILE *fLoad = NULL;
+static LT_FILE *fList = NULL;
 
-static uint8_t File[4096 + 1024];
+static size_t pList;
+
+static uint32_t WaitReloadPacket;
 
 //******************************************************************************
 // Public Data
@@ -71,91 +77,80 @@ static uint8_t File[4096 + 1024];
 
 static uint8_t FragDecoderBegin( uint32_t size  )
 {
-#if 0
-  int Result;
-  
-  if( gUpdateFile == NULL )
+  if(fLoad == NULL )
   {
     SYSLOG_E("FILE NOT OPEN");
     return -1;
   }
-  if (size > gUpdateFile->Size)
+  if (size > fLoad->Size)
   {
     SYSLOG_E("ERROR SIZE");
     return -1;
   }
-  Result = LiteDiskFileClear(gUpdateFile); // Очищаем файл
-  if(Result < 0)
-  {
-    SYSLOG_E("ERROR CLEAR FILE");
-    return -1;
-  }    
+  LiteDiskFileClear(fLoad); // Очищаем файл
+  LiteDiskFileClear(fList); // Очищаем файл  
   memset(&gLoadInfo, 0, sizeof(gLoadInfo));
-  LoadedSize = 0;
+  pList = 0;
   gStat = FILE_LOADER_PROC;
   return 0; // Success
-#endif
-  if (size > sizeof(File))
-  {
-    SYSLOG_E("BEGIN. ERROR SIZE = &d",size);
-    return -1;
-  }
-  memset(File, 0xFF, size);
-  SYSLOG_I("BEGIN. SIZE = %d",size);
-  return 0;
 }
 
 static uint8_t FragDecoderWrite( uint32_t addr, uint8_t *data, uint32_t size )
 {
-#if 0
   int Len = 0;
+  FILE_PART_DESCRIPTION Part = {0, 0};
   
-  if( gUpdateFile == NULL )
+  SYSLOG_D("TMP WRITE. Offs = %d, Size = %d", addr, size);
+  if( fLoad == NULL )
   {
     SYSLOG_E("FILE NOT OPEN");
     return -1;
   }
-  if ((addr + size) > gUpdateFile->Size)
+  if ((addr + size) > fLoad->Size)
   {
     SYSLOG_E("ERROR OFFSET + SIZE");
     return -1;
   }  
-  Len = LiteDiskFileWrite(gUpdateFile, addr, size, data);
+  Len = LiteDiskFileReWrite(fLoad, addr, size, data);
   if (Len <= 0)
   {
     SYSLOG_E("ERROR WRITE FILE");
     return -1;    
   }
-  SYSLOG_D("WRITED. Offs = %d, Size = %d", addr, size);
-  return 0; // Success
-#endif
-
-  if  ((addr + size) > sizeof(File))
+  if (fList)
   {
-	  SYSLOG_E(" WRITE ERR. Offs = %d, Size = %d", addr, size);
-	  return -1;
+    Part.Addr = addr;
+    Part.Size = size;
+    Len = LiteDiskFileWrite(fList, pList * sizeof(FILE_PART_DESCRIPTION), sizeof(FILE_PART_DESCRIPTION), (uint8_t*)&Part);
+    if (Len != sizeof(FILE_PART_DESCRIPTION))
+    {
+      SYSLOG_E("ERROR WRITE LIST FILE");
+    }
+    else
+    {
+      SYSLOG_I("WRITE LIST FILE OK. Part.Addr = %d, Part.Size = %d", Part.Addr, Part.Size);
+    }
+    pList++;
   }
-  memcpy(&File[addr], data, size);
-  SYSLOG_I(" WRITE OK. Offs = %d, Size = %d", addr, size);
-  return 0;
+  SYSLOG_D("TMP FILE WRITED");
+  return 0; // Success
 }
 
 static uint8_t FragDecoderRead( uint32_t addr, uint8_t *data, uint32_t size )
 {
-#if 0
   int Len = 0;
   
-  if( gUpdateFile == NULL )
+  if( fLoad == NULL )
   {
     SYSLOG_E("FILE NOT OPEN");
     return -1;
   }
-  if ((addr + size) > gUpdateFile->Size)
+  if ((addr + size) > fLoad->Size)
   {
     SYSLOG_E("ERROR OFFSET + SIZE");
     return -1;
   }  
-  Len = LiteDiskFileRead(gUpdateFile, addr, size, data);
+  Len = LiteDiskFileRead(fLoad, addr, size, data);
   if (Len <= 0)
   {
     SYSLOG_E("ERROR READ FILE");
@@ -163,15 +158,6 @@ static uint8_t FragDecoderRead( uint32_t addr, uint8_t *data, uint32_t size )
   }
   SYSLOG_D("REATED. Offs = %d, Size = %d", addr, size);
   return 0; // Success
-#endif
-  if  ((addr + size) > sizeof(File))
-  {
-	  SYSLOG_E("READ ERR. Offs = %d, Size = %d", addr, size);
-	  return -1;
-  }
-  memcpy(data, &File[addr], size);
-  SYSLOG_I(" READ OK. Offs = %d, Size = %d", addr, size);
-  return 0;
 }
 
 static void OnFragProgress( uint16_t fragCounter, uint16_t fragNb, uint8_t fragSize, uint16_t fragNbLost )
@@ -182,104 +168,61 @@ static void OnFragProgress( uint16_t fragCounter, uint16_t fragNb, uint8_t fragS
 
 static void OnFragDone( int32_t status, uint32_t size )
 {
-#if 0
-	gStat = FILE_LOADER_ANALYSIS;
-	LoadedSize = size;
-    SYSLOG_D("FINISHED. STATUS %d, SIZE = %d", status, size);
-#endif
-
-    int Len = 0;
-
-    SYSLOG_D("FINISHED. STATUS %d, SIZE = %d", status, size);
-    if( gUpdateFile == NULL )
-    {
-      SYSLOG_E("FILE NOT OPEN");
-      return;
-    }
-    Len = LiteDiskFileClear(gUpdateFile); // Очищаем файл
-    if(Len < 0)
-    {
-      SYSLOG_E("ERROR CLEAR FILE");
-      return;
-    }
-    Len = LiteDiskFileWrite(gUpdateFile, 0, size, File);
-    if (Len <= 0)
-    {
-      SYSLOG_E("ERROR WRITE FILE");
-      return;
-    }
-
-	gStat = FILE_LOADER_ANALYSIS;
-	LoadedSize = size;
+  gLoadInfo.Size = size;
+  gLoadInfo.SizeList = pList;
+  SYSLOG_D("FINISHED. STATUS %d, SIZE = %d", status, size);  
+  gStat = FILE_LOADER_ANALYSIS;
 }
 
-static bool CheckTmpFile(uint32_t Size)
+static bool MoveTmpFile()
 {
-	FILE_LOADER_HEADER Header;
-	int Len = 0;
-	uint32_t ReadSize;
-	uint32_t Crc = 0;
-	uint8_t Buff[256];
-	uint32_t CrcCheck = 0;
-	CrcCheck = crc32_gcc(CrcCheck, &File[12], 4096);
-	SYSLOG_I("CHECK CRC = 0x%08X", CrcCheck);
-	/* Проверяем, проинициализирован ли файл*/
-	if( gUpdateFile == NULL )
-	{
-	  SYSLOG_E("CHECK.FILE NOT OPEN");
-	  return false;
-	}
-	/* Читаем заголовок */
-	Len = LiteDiskFileRead(gUpdateFile, 0, sizeof(Header), (uint8_t*)&Header);
-	if (Len <= 0)
-	{
-	  SYSLOG_E("CHECK.ERROR READ HEADER");
-	  return false;
-	}
-	/* Запонняем структуру */
-	gLoadInfo.Type = (FILE_LOADER_TYPE)Header.Type;
-	gLoadInfo.DataSize = Size - sizeof(Header);
-	gLoadInfo.CrcGet = Header.FillingCrc;
-	gLoadInfo.CrcCalc = 0;
-	/* Проверяем размер */
-	if (Size < (Header.FillingSize + sizeof(Header)))
-	{
-	  SYSLOG_E("CHECK.ERROR SIZE Need size = %d Get size = %d", (Header.FillingSize + sizeof(Header)), Size);
+    int Len = 0;
+    uint8_t Buff[256];
+    FILE_PART_DESCRIPTION Part;
+    LT_FILE *fUpdate;
+    INFO_STRUCT InfoUpdate;
+    UPDATE_RESULT CheckResult;
+    
+    fUpdate = LiteDiskFileOpen(UPDATE_FILE_NAME);
+    if(!fUpdate)
+    {
+      SYSLOG_E("Not open update file");
       return false;
-	}
-	/* Проверяем id */
-	if (Header.DevID != DEV_ID)
-	{
-	  SYSLOG_E("CHECK.ERROR ID. %d", Header.DevID);
+    }      
+    SYSLOG_I("Copy tmp block to update file");
+    /* Выгружаем полученные блоки из временного файла в файл Update*/
+    for (size_t i = 0; i < gLoadInfo.SizeList; i++)
+    {
+        /* Читаем информацию о загруженных блоках */
+        Len = LiteDiskFileRead(fList, i * sizeof(FILE_PART_DESCRIPTION), sizeof(FILE_PART_DESCRIPTION), (uint8_t*)&Part);
+        if (Len != sizeof(FILE_PART_DESCRIPTION))
+        {
+          SYSLOG_E("Error read list file. Part = %d", i);
+          return false;
+        }
+        SYSLOG_I("Part[%d] Addr = %d, Size = %d", i, Part.Addr, Part.Size);
+        Len = LiteDiskFileRead(fLoad, Part.Addr, Part.Size, Buff);
+        if (Len != Part.Size)
+        {
+          SYSLOG_E("Error read tmp file. Addr = %d, Size = %d", Part.Addr, Part.Size);
+          return false;
+        }       
+        Len = LiteDiskFileReWrite(fUpdate, Part.Addr, Part.Size, Buff);
+        if (Len != Part.Size)
+        {
+          SYSLOG_E("Error write update file. Addr = %d, Size = %d", Part.Addr, Part.Size);
+          return false;
+        }               
+    }
+    SYSLOG_I("Copy compleate. Check");
+    /* Запускаем проверку файла*/
+    CheckResult = UpdateCheck(&InfoUpdate);
+    SYSLOG_I("Result = %d, DevID=%d, Version: %d.%d.%d", CheckResult, InfoUpdate.dev_id, InfoUpdate.version[0], InfoUpdate.version[1], InfoUpdate.version[2]);
+    if (CheckResult != UPDATE_RESULT_OK)
+    {
       return false;
-	}
-	/* Проверяем CRC */
-
-	for (int AmountRead = 0; AmountRead < Header.FillingSize; )
-	{
-		if ((Header.FillingSize - AmountRead) > sizeof(Buff)) ReadSize = sizeof(Buff);
-		else ReadSize = (Header.FillingSize - AmountRead);
-		Len = LiteDiskFileRead(gUpdateFile, AmountRead + sizeof(FILE_LOADER_HEADER), ReadSize, Buff);
-		if(Len == ReadSize)
-		{
-			AmountRead += Len;
-			Crc = crc32_gcc(Crc, Buff, Len);
-	    }
-	    else
-	    {
-	    	SYSLOG_E("CHECK.ERROR READ DATA");
-	    	return false;
-	    }
-	}
-
-	gLoadInfo.CrcCalc = Crc;
-	if(gLoadInfo.CrcCalc != gLoadInfo.CrcGet)
-	{
-		SYSLOG_E("CHECK.ERROR CRC. CRC Calc = 0x%08X, CRC Read = 0x%08X", gLoadInfo.CrcCalc, gLoadInfo.CrcGet);
-	    return false;
-	}
-	SYSLOG_I("CHECK.OK");
-	return true;
+    }
+    return true;
 }
 //******************************************************************************
 // Public Functions
@@ -290,16 +233,16 @@ static bool CheckTmpFile(uint32_t Size)
 //******************************************************************************
 bool FileLoaderStart(void)
 {
-  gUpdateFile = LiteDiskFileOpen(TMP_FILE_NAME);
-  if (!gUpdateFile)
+  fLoad = LiteDiskFileOpen(TMP_FILE_NAME);
+  fList = LiteDiskFileOpen(LIST_FILE_NAME);
+  if (!fLoad)
   {
     SYSLOG_E("NOT OPEN FILE");
     return false;
   }
-
-  gStat = FILE_LOADER_WAIT;
+  pList = 0;
   memset(&gLoadInfo, 0, sizeof(gLoadInfo));
-  LoadedSize = 0;
+  gStat = FILE_LOADER_WAIT;
   LmHandlerPackageRegister( PACKAGE_ID_FRAGMENTATION, &gFragmentationParams );
   SYSLOG_I("TASK STARTED");
   return true;
@@ -313,13 +256,20 @@ void FileLoaderProc(void)
   switch(gStat)
   {
   case FILE_LOADER_ANALYSIS:
-	  if (CheckTmpFile(LoadedSize) == true)
+    WaitReloadPacket = 0;
+    if (MoveTmpFile() == true)
+    {
+      gStat = FILE_LOADER_SUCCESS;
+    }
+    else
+    {
+      gStat = FILE_LOADER_FAIL;
+    }
+  break;
+  case FILE_LOADER_SUCCESS:
+	  if (WaitReloadPacket > 3)
 	  {
-		  gStat = FILE_LOADER_SUCCESS;
-	  }
-	  else
-	  {
-		  gStat = FILE_LOADER_FAIL;
+		  BoardResetMcu();
 	  }
   break;
   case FILE_LOADER_WAIT:
@@ -344,6 +294,10 @@ void FileLoaderStop(void)
 FILE_LOADER_STAT FileLoaderGetStat(FILE_LOADER_INFO *Info)
 {
   *Info = gLoadInfo;
+  if (gStat == FILE_LOADER_SUCCESS)
+  {
+	  WaitReloadPacket++;
+  }
   return gStat;
 }
 

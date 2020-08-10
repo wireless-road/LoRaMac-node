@@ -11,7 +11,7 @@
 #include "delay.h"
 #include "stddef.h"
 #include "stdbool.h"
-#define LOG_LEVEL   MAX_LOG_LEVEL_DEBUG
+#define LOG_LEVEL   MAX_LOG_LEVEL_NOT
 #define LOG_MODULE   "MX25L:"
 #include "syslog.h"
 
@@ -31,11 +31,12 @@ static int mx25l_disk_init(void *InitStr);
 static int mx25l_disk_erase_sector(uint32_t Sector);
 static int mx25l_disk_sector_read(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
 static int mx25l_disk_sector_write(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
+static int mx25l_disk_sector_re_write(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data);
 
 //******************************************************************************
 // Private Data
 //******************************************************************************
-
+static uint8_t Buff[MX25L_DISK_SECTOR_SIZE];
 //******************************************************************************
 // Public Data
 //******************************************************************************
@@ -48,6 +49,7 @@ const LT_DISK MX25L_DISK =
 	.DiskSectorErase = mx25l_disk_erase_sector,
 	.DiskSectorRead = mx25l_disk_sector_read,
 	.DiskSectorWrite = mx25l_disk_sector_write,
+        .DiskSectorReWrite = mx25l_disk_sector_re_write,
 };
 
 //******************************************************************************
@@ -132,6 +134,39 @@ static int mx25l_disk_sector_read(uint32_t Sector, uint32_t Offs, uint32_t Size,
   mx25l_byteread(&mx25l_dev,Data, Addr, nBytes);
   
   return nBytes;
+}
+
+//******************************************************************************
+// Disk rewrire data
+//******************************************************************************
+static int  mx25l_disk_sector_re_write(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data)
+{
+	int Result;
+	uint32_t Amount;
+
+	if (Sector >= MX25L_DISK_SECTOR_TOTAL) return DRESULT_PARERR;
+	if (Offs >= MX25L_DISK_SECTOR_SIZE) return DRESULT_PARERR;
+	if (Size > (MX25L_DISK_SECTOR_SIZE - Offs)) Amount = (MX25L_DISK_SECTOR_SIZE - Offs);
+	else Amount = Size;
+
+	Result = mx25l_disk_sector_read(Sector, 0 , sizeof(Buff), Buff);
+	if (Result != sizeof(Buff))
+	{
+		return DRESULT_ERROR;
+	}
+	Result = mx25l_disk_erase_sector(Sector);
+	if (Result != DRESULT_OK) return Result;
+	for (int i = 0; i < Amount; i++)
+	{
+		Buff[Offs + i] = Data[i];
+	}
+	Result = mx25l_disk_sector_write(Sector, 0 , sizeof(Buff), Buff);
+	if (Result != sizeof(Buff))
+	{
+		return DRESULT_ERROR;
+	}
+
+	return Amount;
 }
 
 

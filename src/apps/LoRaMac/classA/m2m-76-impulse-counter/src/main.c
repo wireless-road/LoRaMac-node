@@ -555,22 +555,13 @@ static void UplinkProcess( void )
             else
             {
             	size_t pBuff = 0;
-            	SYSLOG_I("Load info send. Stat=%d,Type=%d,CrcCalc=0x%08X,CrcGet=0x%08X,DataSize=%u", Stat, Info.Type, Info.CrcCalc, Info.CrcGet, Info.DataSize);
+            	SYSLOG_I("Load info send. Stat=%d, Size = %d", Stat, Info.Size);
                 AppDataBuffer[pBuff++] = 0x05; // FragDataBlockAuthReq
                 AppDataBuffer[pBuff++] = (uint8_t)(Stat);
-                AppDataBuffer[pBuff++] = (uint8_t)(Info.Type);
-                AppDataBuffer[pBuff++] = Info.CrcCalc & 0x000000FF;
-                AppDataBuffer[pBuff++] = ( Info.CrcCalc >> 8 ) & 0x000000FF;
-                AppDataBuffer[pBuff++] = ( Info.CrcCalc >> 16 ) & 0x000000FF;
-                AppDataBuffer[pBuff++] = ( Info.CrcCalc >> 24 ) & 0x000000FF;
-                AppDataBuffer[pBuff++] = Info.CrcGet & 0x000000FF;
-                AppDataBuffer[pBuff++] = ( Info.CrcGet >> 8 ) & 0x000000FF;
-                AppDataBuffer[pBuff++] = ( Info.CrcGet >> 16 ) & 0x000000FF;
-                AppDataBuffer[pBuff++] = ( Info.CrcGet >> 24 ) & 0x000000FF;
-                AppDataBuffer[pBuff++] = Info.DataSize & 0x000000FF;
-                AppDataBuffer[pBuff++] = ( Info.DataSize >> 8 ) & 0x000000FF;
-                AppDataBuffer[pBuff++] = ( Info.DataSize >> 16 ) & 0x000000FF;
-                AppDataBuffer[pBuff++] = ( Info.DataSize >> 24 ) & 0x000000FF;
+                AppDataBuffer[pBuff++] = Info.Size & 0x000000FF;
+                AppDataBuffer[pBuff++] = ( Info.Size >> 8 ) & 0x000000FF;
+                AppDataBuffer[pBuff++] = ( Info.Size >> 16 ) & 0x000000FF;
+                AppDataBuffer[pBuff++] = ( Info.Size >> 24 ) & 0x000000FF;
                 // Send FragAuthReq
                 LmHandlerAppData_t appData =
                 {

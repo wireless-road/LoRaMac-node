@@ -10,7 +10,7 @@
 #include "delay.h"
 #include "stddef.h"
 #include "stdbool.h"
-#define LOG_LEVEL   MAX_LOG_LEVEL_WARNING
+#define LOG_LEVEL   MAX_LOG_LEVEL_ERROR
 #define LOG_MODULE   "AT25SF041:"
 #include "syslog.h"
 
@@ -120,7 +120,7 @@ static bool AT25AT25SFWaitReady(uint32_t Timeout)
 		Wait += TIMEOUT_STEP;
 	}
 	while((Stat[0] & 1) && (Wait < Timeout));
-	SYSLOG_D("STAT0 = 0x%X, STAT1=0x%X");
+	//SYSLOG_D("STAT0 = 0x%X, STAT1=0x%X");
 	if (Wait >= Timeout) return false;
 	DelayMs(5);
 	return true;
@@ -171,7 +171,7 @@ static int at25sf041_page_write(uint32_t Addr, uint8_t *Data, uint16_t Size)
 	Offs = (Addr % AT25SF041_PAGE_SIZE);
 	if (Size > (AT25SF041_PAGE_SIZE - Offs)) Amount = (AT25SF041_PAGE_SIZE - Offs);
 	else Amount = Size;
-	SYSLOG_D("WRITE PAGE. Addr = 0x%x, Size=%d", Addr, Amount);
+	SYSLOG_D("WRITE PAGE. Addr = 0x%08X, Size=%d", Addr, Amount);
 	cmd.opcode = CMD_WRITE_ARRAY;
 	cmd.Addr[0] = (uint8_t)(Addr >> 16);
 	cmd.Addr[1] = (uint8_t)(Addr >> 8);
@@ -307,7 +307,7 @@ static int at25sf041_sector_read(uint32_t Sector, uint32_t Offs, uint32_t Size, 
 	Addr = (Sector * AT25SF041_SECTOR_SIZE) + Offs;
 	if (Size > (AT25SF041_SECTOR_SIZE - Offs)) Amount = (AT25SF041_SECTOR_SIZE - Offs);
 	else Amount = Size;
-	SYSLOG_D("READ DATA. Addr = 0x%x.Size=%d", Addr, Amount);
+	//SYSLOG_D("READ DATA. Addr = 0x%x.Size=%d", Addr, Amount);
 	cmd.opcode = CMD_READ_ARRAY;
 	cmd.Addr[0] = (uint8_t)(Addr >> 16);
 	cmd.Addr[1] = (uint8_t)(Addr >> 8);
@@ -320,6 +320,7 @@ static int at25sf041_sector_read(uint32_t Sector, uint32_t Offs, uint32_t Size, 
 
 //******************************************************************************
 // Disk rewrire data
+//******************************************************************************
 static int  at25sf041_sector_re_write(uint32_t Sector, uint32_t Offs, uint32_t Size, uint8_t *Data)
 {
 	int Result;

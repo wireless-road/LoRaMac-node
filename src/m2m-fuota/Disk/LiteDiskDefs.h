@@ -16,18 +16,21 @@
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
-#define MAX_FILES                       3
+#define MAX_FILES                       4
 
-#define DISK                            AT25SF041_DISK
+#define DISK                            MX25L_DISK
 
 #define RECOVERY_FILE_NAME              "recovery"
-#define RECOVERY_FILE_SIZE				(128*1024)
+#define RECOVERY_FILE_SIZE		(128*1024)
 
 #define UPDATE_FILE_NAME                "update"
-#define UPDATE_FILE_SIZE				(128*1024)
+#define UPDATE_FILE_SIZE		(128*1024)
 
 #define TMP_FILE_NAME                   "temp"
-#define TMP_FILE_SIZE		        	(128*1024)
+#define TMP_FILE_SIZE		        (128*1024)
+
+#define LIST_FILE_NAME                   "list"
+#define LIST_FILE_SIZE		        (24*1024)
 
 //******************************************************************************
 // Public Types

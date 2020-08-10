@@ -50,6 +50,10 @@ bool FileGetInfo(LT_FILE *f, uint32_t StartPos, uint32_t Size, INFO_STRUCT *Info
 
 // Check crc file
 bool FileCheckCrcFile(LT_FILE *f, uint32_t Size);
+
+// Get crc file
+uint32_t FileGetCrcFile(LT_FILE *f, uint32_t Size, uint32_t *CrcIar, uint32_t *CrcGcc);
+
   
 #undef EXTERN
 #ifdef __cplusplus

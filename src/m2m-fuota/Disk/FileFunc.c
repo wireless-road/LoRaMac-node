@@ -116,3 +116,51 @@ bool FileCheckCrcFile(LT_FILE *f, uint32_t Size)
   return true;
 }
 
+//******************************************************************************
+// Get crc file
+//******************************************************************************
+uint32_t FileGetCrcFile(LT_FILE *f, uint32_t Size, uint32_t *CrcIar, uint32_t *CrcGcc)
+{
+  uint32_t CrcCalcIar = 0;
+  uint32_t CrcCalcGcc = 0;
+  uint32_t CrcRead;
+  uint8_t Buff[256];
+  uint32_t AmountRead;
+  int Result;
+  
+  if (LiteDiskIsInit() == false)
+  {
+    if(CrcIar) *CrcIar = 0;
+    if(CrcGcc) *CrcGcc = 0;
+    return 0;    
+  }
+  for (AmountRead =0; AmountRead < Size; ) 
+  {
+    Result = LiteDiskFileRead(f, AmountRead, sizeof(Buff), Buff);
+    if(Result == sizeof(Buff))
+    {
+      AmountRead += Result;
+      if (AmountRead < Size)
+      {
+        CrcCalcIar = crc32_iar(CrcCalcIar, Buff, Result);
+        CrcCalcGcc = crc32_gcc(CrcCalcGcc, Buff, Result);
+      }
+      else
+      {
+        CrcCalcIar = crc32_iar(CrcCalcIar, Buff, (Result - 4));
+        CrcCalcGcc = crc32_gcc(CrcCalcGcc, Buff, (Result - 4));
+	CrcRead = (uint32_t)(Buff[255] << 24) + (uint32_t)(Buff[254] << 16) + (uint32_t)(Buff[253] << 8) + (uint32_t)(Buff[252] << 0);
+      }    
+    }
+    else
+    {
+      if(CrcIar) *CrcIar = 0;
+      if(CrcGcc) *CrcGcc = 0;
+      return 0;
+    }
+  }
+  if(CrcIar) *CrcIar = CrcCalcIar;
+  if(CrcGcc) *CrcGcc = CrcCalcGcc;
+  return CrcRead;
+}
+
