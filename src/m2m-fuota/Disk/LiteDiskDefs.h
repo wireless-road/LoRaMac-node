@@ -18,7 +18,7 @@
 //******************************************************************************
 #define MAX_FILES                       4
 
-#define DISK                            MX25L_DISK
+#define DISK                            AT25SF041_DISK
 
 #define RECOVERY_FILE_NAME              "recovery"
 #define RECOVERY_FILE_SIZE		(128*1024)
