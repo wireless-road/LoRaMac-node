@@ -57,7 +57,7 @@ bool AppCheck(INFO_STRUCT *InfoApp, uint32_t StartAddr, uint32_t Size, uint8_t D
   VER_RESULT Res;
   INFO_STRUCT Info;
 
-  SYSLOG_I("CHECK");
+  SYSLOG_I("CHECK. StartAddr=0x%08X,Size=%d", StartAddr, Size);
   memset(InfoApp, 0, sizeof(INFO_STRUCT));
   /* Check app crc */
   pCrc = (uint32_t*)(StartAddr + Size - 4);

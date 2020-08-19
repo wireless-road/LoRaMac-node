@@ -20,6 +20,10 @@
 #define LOG_MODULE  "FLOADER:"
 #include "syslog.h"
 
+#if 0
+#define TEST_LOAD
+#endif
+
 
 
 //******************************************************************************
@@ -111,7 +115,7 @@ static uint8_t FragDecoderWrite( uint32_t addr, uint8_t *data, uint32_t size )
     SYSLOG_E("ERROR OFFSET + SIZE");
     return -1;
   }  
-  Len = LiteDiskFileReWrite(fLoad, addr, size, data);
+  Len = LiteDiskFileWrite(fLoad, addr, size, data);
   if (Len <= 0)
   {
     SYSLOG_E("ERROR WRITE FILE");
@@ -184,6 +188,8 @@ static bool MoveTmpFile()
     UPDATE_RESULT CheckResult;
     
     fUpdate = LiteDiskFileOpen(UPDATE_FILE_NAME);
+    LiteDiskFileClear(fUpdate);
+
     if(!fUpdate)
     {
       SYSLOG_E("Not open update file");
@@ -234,6 +240,7 @@ static bool MoveTmpFile()
 bool FileLoaderStart(void)
 {
   fLoad = LiteDiskFileOpen(TMP_FILE_NAME);
+//	fLoad = LiteDiskFileOpen(UPDATE_FILE_NAME);
   fList = LiteDiskFileOpen(LIST_FILE_NAME);
   if (!fLoad)
   {
@@ -248,11 +255,31 @@ bool FileLoaderStart(void)
   return true;
 }
 
+#ifdef TEST_LOAD
+uint32_t TestLoadOffs = 0;
+uint8_t BuffTest[115];
+uint8_t BuffRead[256];
+
+static bool CmpBuff(uint8_t *Buff1, uint8_t *Buff2, size_t Size)
+{
+	for(int i = 0; i < Size; i++)
+	{
+		if (Buff1[i] != Buff2[i])
+		{
+			//SYSDUMP_E("BUFF1",Buff1,Size);
+			//SYSDUMP_E("BUFF2",Buff2,Size);
+			return false;
+		}
+	}
+	return true;
+}
+#endif
 //******************************************************************************
 // Update task time proc
 //******************************************************************************
 void FileLoaderProc(void)
 {
+	uint32_t Size;
   switch(gStat)
   {
   case FILE_LOADER_ANALYSIS:
@@ -277,6 +304,40 @@ void FileLoaderProc(void)
   default:
 	  break;
   }
+
+#ifdef TEST_LOAD
+  switch (gStat)
+  {
+  	case FILE_LOADER_WAIT:
+  		TestLoadOffs = 0;
+  		FragDecoderBegin(APP_SIZE);
+  	break;
+
+  	case FILE_LOADER_PROC:
+  		if (TestLoadOffs < APP_SIZE)
+  		{
+  			if ((APP_SIZE - TestLoadOffs) > sizeof(BuffTest)) Size = sizeof(BuffTest); else Size = (APP_SIZE - TestLoadOffs);
+  			memset(BuffTest, 0xFF, sizeof(BuffTest));
+  			memcpy(BuffTest,(uint8_t*)(APP_START_ADDRESS + TestLoadOffs), Size);
+  			FragDecoderWrite(TestLoadOffs, BuffTest, Size);
+  			LiteDiskFileRead(fLoad, TestLoadOffs, Size, BuffRead);
+  			if (CmpBuff(BuffTest, BuffRead, Size) != true)
+  			{
+  				SYSLOG_E("Error cmp");
+  			}
+  			else
+  			{
+  				SYSLOG_I("Cmp OK");
+  			}
+  			TestLoadOffs += sizeof(BuffTest);
+  		}
+  		else
+  		{
+  			OnFragDone(0, TestLoadOffs);
+  		}
+  	break;
+  }
+#endif
 }
 
 //******************************************************************************

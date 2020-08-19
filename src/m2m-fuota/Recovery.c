@@ -101,7 +101,7 @@ RECOVERY_RESULT RecoverySave(void)
     return RECOVERY_RESULT_FAIL;
   }
 
-  if (FlashProgramApp(APP_START_ADDRESS, APP_SIZE, f) != FLASH_OK)
+  if (FlashSaveToFile(APP_START_ADDRESS, APP_SIZE, f) != FLASH_OK)
   {
     SYSLOG_E("ERR SAVE");
     return RECOVERY_RESULT_FAIL;
