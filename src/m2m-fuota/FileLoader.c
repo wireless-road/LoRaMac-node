@@ -188,7 +188,6 @@ static bool MoveTmpFile()
     UPDATE_RESULT CheckResult;
     
     fUpdate = LiteDiskFileOpen(UPDATE_FILE_NAME);
-    LiteDiskFileClear(fUpdate);
 
     if(!fUpdate)
     {
