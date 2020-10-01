@@ -2,17 +2,18 @@
 //
 //******************************************************************************
 
-#ifndef __FILE_LOADER_H
-#define __FILE_LOADER_H
+#ifndef __SERVISES_H
+#define __SERVISES_H
 
 //******************************************************************************
 // Included Files
 //******************************************************************************
-
-#include <stdint.h>
 #include <stdbool.h>
-#include "version.h"
+
+#include "LmhpClockSync.h"
+#include "LmhpCompliance.h"
 #include "Scheduler.h"
+
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
@@ -20,27 +21,6 @@
 //******************************************************************************
 // Public Types
 //******************************************************************************
-typedef enum _FILE_LOADER_STAT
-{
-	FILE_LOADER_WAIT,
-	FILE_LOADER_PROC,
-	FILE_LOADER_ANALYSIS,
-	FILE_LOADER_SUCCESS,
-	FILE_LOADER_FAIL,
-	FILE_LOADER_ERROR,
-} FILE_LOADER_STAT;
-
-typedef struct  _FILE_LOADER_INFO
-{
-	uint32_t Size;
-    uint32_t SizeList;
-} FILE_LOADER_INFO;
-
-typedef struct _FILE_PART_DESCRIPTION
-{
-	uint32_t Addr;
-	uint32_t Size;
-}__attribute__((__packed__ )) FILE_PART_DESCRIPTION;
 
 #ifndef __ASSEMBLY__
 
@@ -48,8 +28,8 @@ typedef struct _FILE_PART_DESCRIPTION
 // Public Data
 //******************************************************************************
 
-extern uint32_t FileLoaderTaskId;
-extern PROCESS_FUNC FileLoaderFunc;
+extern uint32_t ServisesTaskId;
+extern PROCESS_FUNC ServisesFunc;
 
 #ifdef __cplusplus
 #define EXTERN extern "C"
@@ -66,19 +46,20 @@ extern "C"
 //******************************************************************************
 // Public Function Prototypes
 //******************************************************************************
-  
-// Start update task
-void FileLoaderStart(void);
 
-// Update task time proc
-void FileLoaderProc(void);
+#if( LMH_SYS_TIME_UPDATE_NEW_API == 1 )
+void OnSysTimeUpdate( bool isSynchronized, int32_t timeCorrection );
+#else
+void OnSysTimeUpdate( void );
+#endif
 
-// Stop update task
-void FileLoaderStop(void);
+void ServisesInit(void);
 
-bool FileLoaderIsRun(void);
+void ServisesTimeProc(void);
 
-FILE_LOADER_STAT FileLoaderGetStat(FILE_LOADER_INFO *Info);
+bool ServisesIsRun(void);
+
+void ServisesStop(void);
 
   
 #undef EXTERN
@@ -88,4 +69,4 @@ FILE_LOADER_STAT FileLoaderGetStat(FILE_LOADER_INFO *Info);
 
 #endif /* __ASSEMBLY__ */
 
-#endif /* __UPDATE_TASK_H*/
+#endif /* __SERVISES_H */

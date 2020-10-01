@@ -74,6 +74,16 @@ static uint32_t WaitReloadPacket;
 // Public Data
 //******************************************************************************
 
+uint32_t FileLoaderTaskId;
+
+PROCESS_FUNC FileLoaderFunc =
+{
+	.Init = FileLoaderStart,
+	.Proc = FileLoaderProc,
+	.Stop = FileLoaderStop,
+	.IsNeedRun = FileLoaderIsRun,
+};
+
 //******************************************************************************
 // Private Functions
 //******************************************************************************
@@ -229,6 +239,26 @@ static bool MoveTmpFile()
     }
     return true;
 }
+
+static bool FileLoaderUplink(void)
+{
+	FILE_LOADER_INFO Info;
+	FILE_LOADER_STAT Stat;
+	uint8_t Data[16];
+	uint8_t pData = 0;
+
+	Stat = FileLoaderGetStat(&Info);
+
+	SYSLOG_I("Load info send. Stat=%d, Size = %d", Stat, Info.Size);
+	Data[pData++] = 0x05; // FragDataBlockAuthReq
+	Data[pData++] = (uint8_t)(Stat);
+	Data[pData++] = Info.Size & 0x000000FF;
+	Data[pData++] = ( Info.Size >> 8 ) & 0x000000FF;
+	Data[pData++] = ( Info.Size >> 16 ) & 0x000000FF;
+	Data[pData++] = ( Info.Size >> 24 ) & 0x000000FF;
+	return LoRaWanSend(201, pData, Data);
+}
+
 //******************************************************************************
 // Public Functions
 //******************************************************************************
@@ -236,22 +266,21 @@ static bool MoveTmpFile()
 //******************************************************************************
 // Start update task
 //******************************************************************************
-bool FileLoaderStart(void)
+void FileLoaderStart(void)
 {
   fLoad = LiteDiskFileOpen(TMP_FILE_NAME);
-//	fLoad = LiteDiskFileOpen(UPDATE_FILE_NAME);
   fList = LiteDiskFileOpen(LIST_FILE_NAME);
   if (!fLoad)
   {
     SYSLOG_E("NOT OPEN FILE");
-    return false;
+    gStat = FILE_LOADER_ERROR;
+    return;
   }
   pList = 0;
   memset(&gLoadInfo, 0, sizeof(gLoadInfo));
   gStat = FILE_LOADER_WAIT;
   LmHandlerPackageRegister( PACKAGE_ID_FRAGMENTATION, &gFragmentationParams );
   SYSLOG_I("TASK STARTED");
-  return true;
 }
 
 #ifdef TEST_LOAD
@@ -278,7 +307,7 @@ static bool CmpBuff(uint8_t *Buff1, uint8_t *Buff2, size_t Size)
 //******************************************************************************
 void FileLoaderProc(void)
 {
-	uint32_t Size;
+  uint32_t Size;
   switch(gStat)
   {
   case FILE_LOADER_ANALYSIS:
@@ -293,6 +322,10 @@ void FileLoaderProc(void)
     }
   break;
   case FILE_LOADER_SUCCESS:
+	  if (FileLoaderUplink() == true)
+	  {
+		  WaitReloadPacket++;
+	  }
 	  if (WaitReloadPacket > 3)
 	  {
 		  BoardResetMcu();
@@ -347,6 +380,11 @@ void FileLoaderStop(void)
   
 }
 
+bool FileLoaderIsRun(void)
+{
+	if ((gStat == FILE_LOADER_WAIT) || (gStat == FILE_LOADER_ERROR)) return false;
+	return true;
+}
 
 //******************************************************************************
 // Get upload stat

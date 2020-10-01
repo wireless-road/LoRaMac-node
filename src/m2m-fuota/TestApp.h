@@ -2,8 +2,8 @@
 //
 //******************************************************************************
 
-#ifndef __FILE_LOADER_H
-#define __FILE_LOADER_H
+#ifndef __APP_H
+#define __APP_H
 
 //******************************************************************************
 // Included Files
@@ -11,8 +11,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "version.h"
 #include "Scheduler.h"
+
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
@@ -20,27 +20,6 @@
 //******************************************************************************
 // Public Types
 //******************************************************************************
-typedef enum _FILE_LOADER_STAT
-{
-	FILE_LOADER_WAIT,
-	FILE_LOADER_PROC,
-	FILE_LOADER_ANALYSIS,
-	FILE_LOADER_SUCCESS,
-	FILE_LOADER_FAIL,
-	FILE_LOADER_ERROR,
-} FILE_LOADER_STAT;
-
-typedef struct  _FILE_LOADER_INFO
-{
-	uint32_t Size;
-    uint32_t SizeList;
-} FILE_LOADER_INFO;
-
-typedef struct _FILE_PART_DESCRIPTION
-{
-	uint32_t Addr;
-	uint32_t Size;
-}__attribute__((__packed__ )) FILE_PART_DESCRIPTION;
 
 #ifndef __ASSEMBLY__
 
@@ -48,8 +27,8 @@ typedef struct _FILE_PART_DESCRIPTION
 // Public Data
 //******************************************************************************
 
-extern uint32_t FileLoaderTaskId;
-extern PROCESS_FUNC FileLoaderFunc;
+extern uint32_t AppTaskId;
+extern PROCESS_FUNC AppFunc;
 
 #ifdef __cplusplus
 #define EXTERN extern "C"
@@ -66,20 +45,11 @@ extern "C"
 //******************************************************************************
 // Public Function Prototypes
 //******************************************************************************
-  
-// Start update task
-void FileLoaderStart(void);
 
-// Update task time proc
-void FileLoaderProc(void);
-
-// Stop update task
-void FileLoaderStop(void);
-
-bool FileLoaderIsRun(void);
-
-FILE_LOADER_STAT FileLoaderGetStat(FILE_LOADER_INFO *Info);
-
+void AppInit(void);
+void AppTimeProc(void);
+void AppStop(void);
+bool AppIsRun(void);
   
 #undef EXTERN
 #ifdef __cplusplus
@@ -88,4 +58,4 @@ FILE_LOADER_STAT FileLoaderGetStat(FILE_LOADER_INFO *Info);
 
 #endif /* __ASSEMBLY__ */
 
-#endif /* __UPDATE_TASK_H*/
+#endif /* __APP_H */

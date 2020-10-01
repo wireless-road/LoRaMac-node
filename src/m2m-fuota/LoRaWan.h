@@ -2,8 +2,8 @@
 //
 //******************************************************************************
 
-#ifndef __FILE_LOADER_H
-#define __FILE_LOADER_H
+#ifndef __LORAWAN_H
+#define __LORAWAN_H
 
 //******************************************************************************
 // Included Files
@@ -11,36 +11,59 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "version.h"
+#include "LmHandler.h"
+#include "LmhpRemoteMcastSetup.h"
 #include "Scheduler.h"
+
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
 
+#define LORAWAN_DEFAULT_REGION LORAMAC_REGION_EU868
+
+/*!
+ * LoRaWAN default end-device class
+ */
+#define LORAWAN_DEFAULT_CLASS                       CLASS_A
+
+
+/*!
+ * LoRaWAN Adaptive Data Rate
+ *
+ * \remark Please note that when ADR is enabled the end-device should be static
+ */
+#define LORAWAN_ADR_STATE                           0//LORAMAC_HANDLER_ADR_OFF
+
+/*!
+ * Default datarate
+ *
+ * \remark Please note that LORAWAN_DEFAULT_DATARATE is used only when ADR is disabled
+ */
+#define LORAWAN_DEFAULT_DATARATE                    DR_0
+
+/*!
+ * User application data buffer size
+ */
+#define LORAWAN_DATA_BUFFER_SIZE            		242
+
+/*!
+ * LoRaWAN ETSI duty cycle control enable/disable
+ *
+ * \remark Please note that ETSI mandates duty cycled transmissions. Use only for test purposes
+ */
+#define LORAWAN_DUTYCYCLE_ON                        false
+
+
+
 //******************************************************************************
 // Public Types
 //******************************************************************************
-typedef enum _FILE_LOADER_STAT
-{
-	FILE_LOADER_WAIT,
-	FILE_LOADER_PROC,
-	FILE_LOADER_ANALYSIS,
-	FILE_LOADER_SUCCESS,
-	FILE_LOADER_FAIL,
-	FILE_LOADER_ERROR,
-} FILE_LOADER_STAT;
 
-typedef struct  _FILE_LOADER_INFO
+typedef enum
 {
-	uint32_t Size;
-    uint32_t SizeList;
-} FILE_LOADER_INFO;
-
-typedef struct _FILE_PART_DESCRIPTION
-{
-	uint32_t Addr;
-	uint32_t Size;
-}__attribute__((__packed__ )) FILE_PART_DESCRIPTION;
+    LORAWAN_TX_ON_TIMER,
+	LORAWAN_TX_ON_EVENT,
+}LoRaWanTxEvents_t;
 
 #ifndef __ASSEMBLY__
 
@@ -48,8 +71,8 @@ typedef struct _FILE_PART_DESCRIPTION
 // Public Data
 //******************************************************************************
 
-extern uint32_t FileLoaderTaskId;
-extern PROCESS_FUNC FileLoaderFunc;
+extern uint32_t LoRaWanTaskId;
+extern PROCESS_FUNC LoRaWanFunc;
 
 #ifdef __cplusplus
 #define EXTERN extern "C"
@@ -66,20 +89,16 @@ extern "C"
 //******************************************************************************
 // Public Function Prototypes
 //******************************************************************************
-  
-// Start update task
-void FileLoaderStart(void);
 
-// Update task time proc
-void FileLoaderProc(void);
+void LoRaWanInit(void);
 
-// Stop update task
-void FileLoaderStop(void);
+void LoRaWanTimeProc(void);
 
-bool FileLoaderIsRun(void);
+bool LoRaWanIsRun(void);
 
-FILE_LOADER_STAT FileLoaderGetStat(FILE_LOADER_INFO *Info);
+void LoRaWanStop(void);
 
+bool LoRaWanSend( uint8_t Port, size_t Size, uint8_t *Data );
   
 #undef EXTERN
 #ifdef __cplusplus
@@ -88,4 +107,4 @@ FILE_LOADER_STAT FileLoaderGetStat(FILE_LOADER_INFO *Info);
 
 #endif /* __ASSEMBLY__ */
 
-#endif /* __UPDATE_TASK_H*/
+#endif /* __*_H */
