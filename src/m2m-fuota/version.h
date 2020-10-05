@@ -30,9 +30,9 @@ typedef struct _VER_STRUCT
 } __attribute__((__packed__ )) VER_STRUCT;
 
 #ifdef BOOTLOADER
-#define BOOT_VER 	0,0,1
+#define BOOT_VER 	0,0,2
 #else
-#define APP_VER 	0,0,3
+#define APP_VER 	0,1,0
 #endif
 
 #define DEV_ID 		1

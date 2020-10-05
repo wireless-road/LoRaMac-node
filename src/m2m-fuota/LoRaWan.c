@@ -263,7 +263,6 @@ void LoRaWanInit(void)
 
     SYSLOG_I("LoRaWan is init");
 
-
     LmHandlerJoin( );
 }
 

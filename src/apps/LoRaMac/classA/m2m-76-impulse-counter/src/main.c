@@ -46,7 +46,7 @@
 #include "LiteDisk.h"
 #include "LiteDiskDefs.h"
 #define LOG_LEVEL   MAX_LOG_LEVEL_DEBUG
-#define LOG_MODULE  "APP:"
+#define LOG_MODULE  "MAIN:"
 #include "syslog.h"
 
 

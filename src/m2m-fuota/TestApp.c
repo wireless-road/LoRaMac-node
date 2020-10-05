@@ -108,6 +108,7 @@ void AppTimeProc(void)
 	{
 		if (AppSend() == true)
 		{
+			SYSLOG_I("App send data");
 			IsTxFramePending = false;
 		}
 	}

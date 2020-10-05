@@ -78,7 +78,7 @@ void SchedulerProc(void)
 {
 	for (int i = 0; i < MAX_PROCESS_COUNT; i++)
 	{
-		if ((Proc[i].Func) && (Proc[i].Func->Proc == true) && (Proc[i].Func->IsNeedRun() == true))
+		if ((Proc[i].Func) && (Proc[i].Func->Proc) && (Proc[i].Func->IsNeedRun() == true))
 		{
 			Proc[i].Func->Proc();
 		}

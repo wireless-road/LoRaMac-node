@@ -17,7 +17,7 @@
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
-
+#define SYSTIME_REQ_TIMEOUT 60
 //******************************************************************************
 // Private Types
 //******************************************************************************
@@ -118,6 +118,7 @@ void ServisesTimeProc(void)
 	{
 		if (LmhpClockSyncAppTimeReq( ) == LORAMAC_HANDLER_SUCCESS)
 		{
+			SYSLOG_I("SysTime Req");
 			LastTimeClockSynched = SysTimeGetMcuTime();
 		}
 	}
@@ -126,7 +127,7 @@ void ServisesTimeProc(void)
 
 bool ServisesIsRun(void)
 {
-	if ((IsClockSynched == false) && (SysTimeGetMcuTime().Seconds > (LastTimeClockSynched.Seconds + 300 )))
+	if ((IsClockSynched == false) && (SysTimeGetMcuTime().Seconds > (LastTimeClockSynched.Seconds + SYSTIME_REQ_TIMEOUT )))
 	{
 		return true;
 	}
