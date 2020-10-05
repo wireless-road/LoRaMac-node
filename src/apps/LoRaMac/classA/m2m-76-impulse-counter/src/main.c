@@ -41,6 +41,7 @@
 #include "Servises.h"
 #include "FileLoader.h"
 #include "TestApp.h"
+#include "Config.h"
 
 #include "version.h"
 #include "LiteDisk.h"
@@ -68,6 +69,13 @@ int main( void )
     LiteDiskInit((LT_DISK*)&DISK, (void*)&SX1276.Spi, (LT_FILE_DEFS*)&FILE_TABLE);
     SYSLOG_I("Disk is init = %d", LiteDiskIsInit());  
     
+    if (ConfigFileOpen() != CONF_OK)
+    {
+    	SYSLOG_W("Error open config array file");
+    	ConfigFileCreate();
+    	ConfigFileOpen();
+    }
+
     ProcessInit("LoRaWan", &LoRaWanFunc, &LoRaWanTaskId);
     ProcessInit("Servises", &ServisesFunc, &ServisesTaskId);
     ProcessInit("FileLoader", &FileLoaderFunc, &FileLoaderTaskId);

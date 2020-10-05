@@ -16,7 +16,7 @@
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
-#define MAX_FILES                       4
+#define MAX_FILES                       5
 
 #define DISK                            AT25SF041_DISK
 
@@ -31,6 +31,9 @@
 
 #define LIST_FILE_NAME                   "list"
 #define LIST_FILE_SIZE		        (24*1024)
+
+#define CONF_FILE_NAME                   "config"
+#define CONF_FILE_SIZE		        (4*1024)
 
 //******************************************************************************
 // Public Types
