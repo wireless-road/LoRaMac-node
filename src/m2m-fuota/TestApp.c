@@ -10,6 +10,7 @@
 
 #include "LoRaWan.h"
 #include "board.h"
+#include "config.h"
 #define LOG_LEVEL   MAX_LOG_LEVEL_DEBUG
 #define LOG_MODULE  "APP:"
 #include "syslog.h"
@@ -21,7 +22,7 @@
 /*!
  * Defines the application data transmission duty cycle. 60s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            60000
+#define DEFAULT_APP_TX_DUTYCYCLE                    60
 
 /*!
  * Defines a random delay for application data transmission duty cycle. 5s,
@@ -32,6 +33,11 @@
 //******************************************************************************
 // Private Types
 //******************************************************************************
+typedef struct
+{
+	uint32_t SendPeriod;
+	uint8_t Port;
+} __attribute__((__packed__ )) sAppConf;
 
 //******************************************************************************
 // Private Function Prototypes
@@ -47,6 +53,12 @@
 static TimerEvent_t TxTimer;
 
 static volatile uint8_t IsTxFramePending = 0;
+
+static sAppConf Conf =
+{
+	.SendPeriod = DEFAULT_APP_TX_DUTYCYCLE,
+	.Port = 3,
+};
 
 //******************************************************************************
 // Public Data
@@ -74,7 +86,7 @@ static void OnTxTimerEvent( void* context )
     IsTxFramePending = 1;
 
     // Schedule next transmission
-    TimerSetValue( &TxTimer, APP_TX_DUTYCYCLE + randr( -APP_TX_DUTYCYCLE_RND, APP_TX_DUTYCYCLE_RND ) );
+    TimerSetValue( &TxTimer, (Conf.SendPeriod * 1000 ) + randr( -APP_TX_DUTYCYCLE_RND, APP_TX_DUTYCYCLE_RND ) );
     TimerStart( &TxTimer );
 }
 
@@ -87,7 +99,7 @@ static bool AppSend(void)
 	Data[1] = randr( 0, 255 );
 	Data[2] = randr( 0, 255 );
 	Data[3] = randr( 0, 255 );
-	return LoRaWanSend(3, 4, Data);
+	return LoRaWanSend(Conf.Port, 4, Data);
 }
 
 //******************************************************************************
@@ -96,9 +108,11 @@ static bool AppSend(void)
 
 void AppInit(void)
 {
+	// Загружаем настройки
+
     // Schedule 1st packet transmission
     TimerInit( &TxTimer, OnTxTimerEvent );
-    TimerSetValue( &TxTimer, APP_TX_DUTYCYCLE  + randr( -APP_TX_DUTYCYCLE_RND, APP_TX_DUTYCYCLE_RND ) );
+    TimerSetValue( &TxTimer, (Conf.SendPeriod * 1000) + randr( -APP_TX_DUTYCYCLE_RND, APP_TX_DUTYCYCLE_RND ) );
     OnTxTimerEvent( NULL );
 }
 

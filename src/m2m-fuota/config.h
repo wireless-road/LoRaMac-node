@@ -50,8 +50,8 @@ extern "C"
 
 RESULT_CONF ConfigFileOpen(void);
 RESULT_CONF ConfigFileCreate(void);
-RESULT_CONF ConfigPartOpen(char *Name, uint32_t *Indx);
-RESULT_CONF ConfigPartCreate(char *Name, size_t Size, uint32_t *Indx);
+RESULT_CONF ConfigPartOpen(uint16_t Id, uint32_t *Indx);
+RESULT_CONF ConfigPartCreate(uint16_t Id, size_t Size, uint32_t *Indx);
 int ConfigPartRead(uint32_t Indx, size_t size, void *Conf);
 int ConfigPartWrite(uint32_t Indx, size_t size, void *Conf);
   
