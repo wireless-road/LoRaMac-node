@@ -28,6 +28,7 @@
 //******************************************************************************
 typedef struct _CONF_RECORD
 {
+	uint16_t CheckNum;
 	uint16_t Id;
 	uint16_t SizeRecord;
 	uint16_t SizeConf;
@@ -66,7 +67,7 @@ RESULT_CONF ConfigFileOpen(void)
 
 	flCorrect = false;
 	fConfig = LiteDiskFileOpen(CONF_FILE_NAME); // Пытаемся открыть файл
-	if (!fConfig)
+	if (fConfig == NULL)
 	{
 		SYSLOG_E("Error open file");
 		return CONF_ERRROR; // Выходим с ошибкой
@@ -94,13 +95,15 @@ RESULT_CONF ConfigFileCreate(void)
 	int Len;
 	uint8_t Buff[64];
 
+	flCorrect = false;
+	fConfig = LiteDiskFileOpen(CONF_FILE_NAME); // Пытаемся открыть файл
 	if (!fConfig)
 	{
 		SYSLOG_E("Error open file");
 		return CONF_ERRROR; // Выходим с ошибкой
 	}
 	Len = LiteDiskFileClear(fConfig); // Очищаем файл
-	if (Len != sizeof(CONF_HEADER))
+	if (Len != CONF_FILE_SIZE)
 	{
 		SYSLOG_E("Error clear file");
 		return CONF_ERRROR; // Выходим с ошибкой
@@ -109,9 +112,9 @@ RESULT_CONF ConfigFileCreate(void)
 	for (int i = 0; i < CONF_FILE_SIZE; )
 	{
 		Len = LiteDiskFileWrite(fConfig, i, 64, Buff);
-		if (Len != sizeof(CONF_HEADER))
+		if (Len != 64)
 		{
-			SYSLOG_E("Error clear file");
+			SYSLOG_E("Error fill file");
 			return CONF_ERRROR; // Выходим с ошибкой
 		}
 		i += Len;
@@ -128,13 +131,14 @@ RESULT_CONF ConfigFileCreate(void)
 	return CONF_OK;
 }
 
-RESULT_CONF ConfigPartOpen(uint16_t Id, uint32_t *Indx)
+RESULT_CONF ConfigPartOpen(ID_CONF Id, uint32_t *Indx)
 {
 	int Len;
 	CONF_RECORD Record;
-	uint32_t Offs = sizeof(CONF_HEADER);
+	uint32_t Offs;
 
-	if ((!fConfig) && (flCorrect == false))
+	Offs = sizeof(CONF_HEADER);
+	if ((!fConfig) || (flCorrect == false) || (Id >= ID_CONF_COUNT))
 	{
 		SYSLOG_E("Error file");
 		return CONF_ERRROR; // Выходим с ошибкой
@@ -143,7 +147,7 @@ RESULT_CONF ConfigPartOpen(uint16_t Id, uint32_t *Indx)
 	for (int i = 0; i < gHeader.CountRecords; i++)
 	{
 		Len = LiteDiskFileRead(fConfig, Offs, sizeof(CONF_RECORD), (uint8_t*)&Record);
-		if ((Len == sizeof(CONF_RECORD)) && (Record.Id == Id))
+		if ((Len == sizeof(CONF_RECORD)) && (Record.Id == Id) && (Record.CheckNum == CHECK_NUN))
 		{
 			*Indx = Offs;
 			return CONF_OK;
@@ -154,13 +158,13 @@ RESULT_CONF ConfigPartOpen(uint16_t Id, uint32_t *Indx)
 	return CONF_NOT;
 }
 
-RESULT_CONF ConfigPartCreate(uint16_t Id, size_t Size, uint32_t *Indx)
+RESULT_CONF ConfigPartCreate(ID_CONF Id, size_t Size)
 {
 	int Len;
 	CONF_RECORD Record;
 	uint32_t Offs = sizeof(CONF_HEADER);
 
-	if ((!fConfig) && (flCorrect == false))
+	if ((!fConfig) || (flCorrect == false) || (Id >= ID_CONF_COUNT))
 	{
 		SYSLOG_E("Error file");
 		return CONF_ERRROR; // Выходим с ошибкой
@@ -175,9 +179,11 @@ RESULT_CONF ConfigPartCreate(uint16_t Id, size_t Size, uint32_t *Indx)
 		SYSLOG_E("Not place");
 		return CONF_ERRROR; // Выходим с ошибкой
 	}
-	Record.SizeConf = 0;
-	Record.SizeRecord = Size;
+	Record.CheckNum = CHECK_NUN;
 	Record.Id = Id;
+	Record.SizeRecord = Size;
+	Record.SizeConf = 0;
+	SYSLOG_I("Create:Record.SizeConf=%d,Record.SizeRecord=%d,Record.Id=%d", Record.SizeConf, Record.SizeRecord, Record.Id);
 	Len = LiteDiskFileReWrite(fConfig, Offs, sizeof(CONF_RECORD), (uint8_t*)&Record); // Очищаем файл
 	if (Len != sizeof(CONF_RECORD))
 	{
@@ -200,10 +206,12 @@ int ConfigPartRead(uint32_t Indx, size_t size, void *Conf)
 {
 	int Len;
 	CONF_RECORD Record;
-	uint32_t Offs = sizeof(CONF_HEADER) + Indx;
+	uint32_t Offs;
 	uint32_t ReadSize;
 
-	if ((!fConfig) && (flCorrect == false))
+
+	Offs = Indx;
+	if ((!fConfig) || (flCorrect == false))
 	{
 		SYSLOG_E("Error file");
 		return -1; // Выходим с ошибкой
@@ -211,8 +219,9 @@ int ConfigPartRead(uint32_t Indx, size_t size, void *Conf)
 	Len = LiteDiskFileRead(fConfig, Offs, sizeof(CONF_RECORD), (uint8_t*)&Record);
 	if (Len != sizeof(CONF_RECORD) || (size > Record.SizeRecord))
 	{
-		SYSLOG_E("Error read record");
-		return CONF_ERRROR; // Выходим с ошибкой
+
+		SYSLOG_E("Error read record. Id = %d.SizePart = %d, SizeConf = %d", Record.Id, Record.SizeRecord, Record.SizeConf);
+		return -1; // Выходим с ошибкой
 	}
 	if (size > Record.SizeConf) ReadSize = Record.SizeConf; else ReadSize = size;
 	Offs += sizeof(CONF_RECORD);
@@ -223,9 +232,11 @@ int ConfigPartWrite(uint32_t Indx, size_t size, void *Conf)
 {
 	int Len;
 	CONF_RECORD Record;
-	uint32_t Offs = sizeof(CONF_HEADER) + Indx;
+	uint32_t Offs;
 
-	if ((!fConfig) && (flCorrect == false))
+
+	Offs = Indx;
+	if ((!fConfig) || (flCorrect == false))
 	{
 		SYSLOG_E("Error file");
 		return -1; // Выходим с ошибкой
@@ -233,8 +244,8 @@ int ConfigPartWrite(uint32_t Indx, size_t size, void *Conf)
 	Len = LiteDiskFileRead(fConfig, Offs, sizeof(CONF_RECORD), (uint8_t*)&Record);
 	if (Len != sizeof(CONF_RECORD) || (size > Record.SizeRecord))
 	{
-		SYSLOG_E("Error read record");
-		return CONF_ERRROR; // Выходим с ошибкой
+		SYSLOG_E("Error write record. Id = %d.SizePart = %d, SizeConf = %d", Record.Id, Record.SizeRecord, Record.SizeConf);
+		return -1; // Выходим с ошибкой
 	}
 	// Пишем новый заголовок записи
 	Record.SizeConf = size;
@@ -242,7 +253,7 @@ int ConfigPartWrite(uint32_t Indx, size_t size, void *Conf)
 	if (Len != sizeof(CONF_RECORD))
 	{
 		SYSLOG_E("Error write record header");
-		return CONF_ERRROR; // Выходим с ошибкой
+		return -1; // Выходим с ошибкой
 	}
 	Offs += sizeof(CONF_RECORD);
 	return LiteDiskFileReWrite(fConfig, Offs, size, (uint8_t*)Conf);

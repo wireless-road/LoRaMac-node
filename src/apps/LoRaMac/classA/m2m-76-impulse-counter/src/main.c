@@ -58,6 +58,7 @@
 int main( void )
 {
     INFO_STRUCT Info;
+    RESULT_CONF ConfResult;
 
     BoardInitMcu( );
     BoardInitPeriph( );
@@ -71,9 +72,10 @@ int main( void )
     
     if (ConfigFileOpen() != CONF_OK)
     {
-    	SYSLOG_W("Error open config array file");
-    	ConfigFileCreate();
-    	ConfigFileOpen();
+    	ConfResult = ConfigFileCreate();
+    	SYSLOG_I("ConfigFileCreate=%d", ConfResult);
+    	ConfResult = ConfigFileOpen();
+    	SYSLOG_I("ConfigFileOpen=%d", ConfResult);
     }
 
     ProcessInit("LoRaWan", &LoRaWanFunc, &LoRaWanTaskId);

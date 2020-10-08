@@ -2,15 +2,13 @@
 //
 //******************************************************************************
 
-#ifndef __CONFIG_H
-#define __CONFIG_H
+#ifndef __CONFIG_DEFS_H
+#define __CONFIG_DEFS_H
 
 //******************************************************************************
 // Included Files
 //******************************************************************************
-#include <stdint.h>
-#include <stddef.h>
-#include "ConfigDefs.h"
+
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
@@ -19,13 +17,11 @@
 // Public Types
 //******************************************************************************
 
-typedef enum eRESULT_CONF
+typedef enum
 {
-	CONF_OK = 0,
-	CONF_ERRROR,
-	CONF_NOT,
-} RESULT_CONF;
-
+	ID_CONF_APP = 0,
+	ID_CONF_COUNT,
+} ID_CONF;
 
 #ifndef __ASSEMBLY__
 
@@ -48,13 +44,6 @@ extern "C"
 //******************************************************************************
 // Public Function Prototypes
 //******************************************************************************
-
-RESULT_CONF ConfigFileOpen(void);
-RESULT_CONF ConfigFileCreate(void);
-RESULT_CONF ConfigPartOpen(ID_CONF Id, uint32_t *Indx);
-RESULT_CONF ConfigPartCreate(ID_CONF Id, size_t Size);
-int ConfigPartRead(uint32_t Indx, size_t size, void *Conf);
-int ConfigPartWrite(uint32_t Indx, size_t size, void *Conf);
   
 #undef EXTERN
 #ifdef __cplusplus

@@ -108,7 +108,29 @@ static bool AppSend(void)
 
 void AppInit(void)
 {
+	uint32_t ConfIndex = 0;
+	RESULT_CONF ConfResult;
+	int ConfLen;
+
 	// Загружаем настройки
+	ConfResult = ConfigPartOpen(ID_CONF_APP, &ConfIndex); // Пытаемся открыть
+	SYSLOG_I("OpenConf. ConfResult=%d,ConfIndex=%d", ConfResult, ConfIndex);
+	if (ConfResult == CONF_NOT)
+	{
+		ConfResult = ConfigPartCreate(ID_CONF_APP, 256); // Если не получилось то создаем
+		SYSLOG_I("CreateConf. ConfResult=%d", ConfResult, ConfIndex);
+		ConfResult = ConfigPartOpen(ID_CONF_APP, &ConfIndex); // Пытаемся открыть
+		SYSLOG_I("OpenConf. ConfResult=%d,ConfIndex=%d", ConfResult, ConfIndex);
+	}
+	if (ConfResult == CONF_OK)
+	{
+		ConfLen = ConfigPartRead(ConfIndex, sizeof(sAppConf), &Conf);
+		if (ConfLen != sizeof(sAppConf))
+		{
+			ConfigPartWrite(ConfIndex, sizeof(sAppConf), &Conf);
+			ConfigPartRead(ConfIndex, sizeof(sAppConf), &Conf);
+		}
+	}
 
     // Schedule 1st packet transmission
     TimerInit( &TxTimer, OnTxTimerEvent );
