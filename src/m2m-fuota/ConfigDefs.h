@@ -19,7 +19,10 @@
 
 typedef enum
 {
-	ID_CONF_APP = 0,
+	ID_CONF_APP = 0, // Конфигурация приложения
+	ID_CONF_SERV, // Конфигурация сервисов
+	ID_CONF_LORA_PARAM, // Параметры работы LoRa
+	ID_CONF_LORA_KEY, // Ключи LoRa
 	ID_CONF_COUNT,
 } ID_CONF;
 

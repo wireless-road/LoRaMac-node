@@ -8,6 +8,7 @@
    
 #include "Servises.h"
 #include "LoRaWan.h"
+#include "config.h"
 
 #define LOG_LEVEL   MAX_LOG_LEVEL_DEBUG
 #define LOG_MODULE  "SERV:"
@@ -17,10 +18,17 @@
 //******************************************************************************
 // Pre-processor Definitions
 //******************************************************************************
-#define SYSTIME_REQ_TIMEOUT 60
+#define DEFAULT_SYSTIME_REQ_TIMEOUT 60 // Пауза между запросами
+#define DEFAULT_SYSTIME_REQ_PERIOD	24*3600 // Каждые 24 часа
 //******************************************************************************
 // Private Types
 //******************************************************************************
+
+typedef struct
+{
+	uint32_t SysTimeReqPeriod;
+	uint32_t SysTimeReqTimeout;
+} __attribute__((__packed__ )) sServConf;
 
 //******************************************************************************
 // Private Function Prototypes
@@ -35,13 +43,12 @@ static SysTime_t LastTimeClockSynched =
 	    .SubSeconds = 0,
 };
 
-
 /*
  * Indicates if the system time has been synchronized
  */
 static volatile bool IsClockSynched = false;
 
-static TimerEvent_t ClockSynchTimer;
+static TimerEvent_t ClockSyncTimer;
 
 static LmhpComplianceParams_t LmhpComplianceParams =
 {
@@ -49,6 +56,12 @@ static LmhpComplianceParams_t LmhpComplianceParams =
     .DutyCycleEnabled = LORAWAN_DUTYCYCLE_ON,
     .StopPeripherals = NULL,
     .StartPeripherals = NULL,
+};
+
+static sServConf ServConf =
+{
+	.SysTimeReqPeriod = DEFAULT_SYSTIME_REQ_PERIOD,
+	.SysTimeReqTimeout = DEFAULT_SYSTIME_REQ_TIMEOUT,
 };
 
 //******************************************************************************
@@ -76,7 +89,7 @@ PROCESS_FUNC ServisesFunc =
  */
 static void ClockSynchTimerEvent( void* context )
 {
-    TimerStop( &ClockSynchTimer );
+    TimerStop( &ClockSyncTimer );
 
     IsClockSynched = false;
 }
@@ -89,8 +102,8 @@ void OnSysTimeUpdate( bool isSynchronized, int32_t timeCorrection )
     SYSLOG_I("SysTimeUpdate. New Time = %d. timeCorrection = %d", Time.Seconds, timeCorrection);
     IsClockSynched = true;
 
-    TimerSetValue( &ClockSynchTimer, (24 *3600 * 1000));
-    TimerStart( &ClockSynchTimer );
+    TimerSetValue( &ClockSyncTimer, (ServConf.SysTimeReqPeriod * 1000));
+    TimerStart( &ClockSyncTimer );
 }
 #else
 static void OnSysTimeUpdate( void )
@@ -104,10 +117,35 @@ static void OnSysTimeUpdate( void )
 
 void ServisesInit(void)
 {
+	uint32_t ConfIndex = 0;
+	RESULT_CONF ConfResult;
+	int ConfLen;
+
 	LmHandlerPackageRegister( PACKAGE_ID_CLOCK_SYNC, NULL );
 	LmHandlerPackageRegister( PACKAGE_ID_COMPLIANCE, &LmhpComplianceParams );
 
-	TimerInit( &ClockSynchTimer, ClockSynchTimerEvent );
+	// Загружаем настройки
+	ConfResult = ConfigPartOpen(ID_CONF_SERV, &ConfIndex); // Пытаемся открыть
+	SYSLOG_I("OpenConf. ConfResult=%d,ConfIndex=%d", ConfResult, ConfIndex);
+	if (ConfResult == CONF_NOT)
+	{
+		ConfResult = ConfigPartCreate(ID_CONF_SERV, 256); // Если не получилось то создаем
+		SYSLOG_I("CreateConf. ConfResult=%d", ConfResult, ConfIndex);
+		ConfResult = ConfigPartOpen(ID_CONF_SERV, &ConfIndex); // Пытаемся открыть
+		SYSLOG_I("OpenConf. ConfResult=%d,ConfIndex=%d", ConfResult, ConfIndex);
+	}
+	if (ConfResult == CONF_OK)
+	{
+		ConfLen = ConfigPartRead(ConfIndex, sizeof(sServConf), &ServConf);
+		if (ConfLen != sizeof(sServConf))
+		{
+			ConfigPartWrite(ConfIndex, sizeof(sServConf), &ServConf);
+			ConfigPartRead(ConfIndex, sizeof(sServConf), &ServConf);
+		}
+	}
+
+
+	TimerInit( &ClockSyncTimer, ClockSynchTimerEvent );
 
 	IsClockSynched = false;
 }
@@ -127,7 +165,7 @@ void ServisesTimeProc(void)
 
 bool ServisesIsRun(void)
 {
-	if ((IsClockSynched == false) && (SysTimeGetMcuTime().Seconds > (LastTimeClockSynched.Seconds + SYSTIME_REQ_TIMEOUT )))
+	if ((IsClockSynched == false) && (SysTimeGetMcuTime().Seconds > (LastTimeClockSynched.Seconds + ServConf.SysTimeReqTimeout )))
 	{
 		return true;
 	}
