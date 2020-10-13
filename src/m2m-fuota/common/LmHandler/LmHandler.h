@@ -106,6 +106,8 @@ typedef struct LmHandlerParams_s
      * Application data buffer pointer
      */
     uint8_t *DataBuffer;
+
+    bool IsOtaaActivation;
 }LmHandlerParams_t;
 
 typedef struct LmHandlerCallbacks_s

@@ -42,7 +42,7 @@
 
 static CommissioningParams_t CommissioningParams =
 {
-    .IsOtaaActivation = OVER_THE_AIR_ACTIVATION,
+    .IsOtaaActivation = false,
     .DevEui = { 0 },  // Automatically filed from secure-element
     .JoinEui = { 0 }, // Automatically filed from secure-element
     .SePin = { 0 },   // Automatically filed from secure-element
@@ -222,6 +222,7 @@ LmHandlerErrorStatus_t LmHandlerInit( LmHandlerCallbacks_t *handlerCallbacks,
     LoRaMacCallbacks.MacProcessNotify = LmHandlerCallbacks->OnMacProcess;
 
     IsClassBSwitchPending = false;
+    CommissioningParams.IsOtaaActivation = LmHandlerParams->IsOtaaActivation;
 
     if( LoRaMacInitialization( &LoRaMacPrimitives, &LoRaMacCallbacks, LmHandlerParams->Region ) != LORAMAC_STATUS_OK )
     {

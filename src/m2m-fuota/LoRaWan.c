@@ -10,6 +10,7 @@
 #include "Servises.h"
 #include "board.h"
 #include "Commissioning.h"
+#include "config.h"
 #define LOG_LEVEL   MAX_LOG_LEVEL_DEBUG
 #define LOG_MODULE  "LORAWAN:"
 #include "syslog.h"
@@ -22,6 +23,16 @@
 //******************************************************************************
 // Private Types
 //******************************************************************************
+
+typedef struct
+{
+    LoRaMacRegion_t Region;
+    bool AdrEnable;
+    int8_t TxDatarate;
+    bool PublicNetworkEnable;
+    bool DutyCycleEnabled;
+    bool Otaa;
+} __attribute__((__packed__ )) sLoRaWanParamsConf;
 
 //******************************************************************************
 // Private Function Prototypes
@@ -45,8 +56,6 @@ static void OnBeaconStatusChange( LoRaMAcHandlerBeaconParams_t* params );
  */
 static uint8_t LoRaWanDataBuffer[LORAWAN_DATA_BUFFER_SIZE];
 
-
-
 static LmHandlerCallbacks_t LmHandlerCallbacks =
 {
     .GetBatteryLevel = BoardGetBatteryLevel,
@@ -67,13 +76,18 @@ static LmHandlerCallbacks_t LmHandlerCallbacks =
 
 static LmHandlerParams_t LmHandlerParams =
 {
-    .Region = LORAWAN_DEFAULT_REGION,
-    .AdrEnable = LORAWAN_ADR_STATE,
-    .TxDatarate = LORAWAN_DEFAULT_DATARATE,
-    .PublicNetworkEnable = LORAWAN_PUBLIC_NETWORK,
-    .DutyCycleEnabled = LORAWAN_DUTYCYCLE_ON,
     .DataBufferMaxSize = LORAWAN_DATA_BUFFER_SIZE,
     .DataBuffer = LoRaWanDataBuffer
+};
+
+static sLoRaWanParamsConf LoRaWanParamsConf =
+{
+	.Region = LORAWAN_DEFAULT_REGION,
+	.AdrEnable = LORAWAN_ADR_STATE,
+	.TxDatarate = LORAWAN_DEFAULT_DATARATE,
+	.PublicNetworkEnable = LORAWAN_PUBLIC_NETWORK,
+	.DutyCycleEnabled = LORAWAN_DUTYCYCLE_ON,
+	.Otaa = OVER_THE_AIR_ACTIVATION,
 };
 
 
@@ -143,16 +157,6 @@ static void OnMacMlmeRequest( LoRaMacStatus_t status, MlmeReq_t *mlmeReq, TimerT
 static void OnJoinRequest( LmHandlerJoinParams_t* params )
 {
     SYSLOG_I("OnJoinRequest");
-    if (params->CommissioningParams->IsOtaaActivation == true)
-    {
-      SYSLOG_I("JOINED. DevAddr = %08X", params->CommissioningParams->DevAddr);
-    }
-#if ( OVER_THE_AIR_ACTIVATION == 0 )
-    else
-    {
-      SYSLOG_I("JOINED. DevAddr = %08X", params->CommissioningParams->DevAddr);
-    }
-#endif
 
     if( params->Status == LORAMAC_HANDLER_ERROR )
     {
@@ -160,6 +164,14 @@ static void OnJoinRequest( LmHandlerJoinParams_t* params )
     }
     else
     {
+        if (params->CommissioningParams->IsOtaaActivation == true)
+        {
+          SYSLOG_I("OTAA JOINED. DevAddr = %08X", params->CommissioningParams->DevAddr);
+        }
+        else
+        {
+          SYSLOG_I("ABP. DevAddr = %08X", params->CommissioningParams->DevAddr);
+        }
         LmHandlerRequestClass( LORAWAN_DEFAULT_CLASS );
     }
 }
@@ -244,6 +256,36 @@ static void OnBeaconStatusChange( LoRaMAcHandlerBeaconParams_t* params )
 
 void LoRaWanInit(void)
 {
+	uint32_t ConfIndex = 0;
+	RESULT_CONF ConfResult;
+	int ConfLen;
+	// Загружаем настройки
+	ConfResult = ConfigPartOpen(ID_CONF_LORA_PARAM, &ConfIndex); // Пытаемся открыть
+	SYSLOG_I("OpenConf. ConfResult=%d,ConfIndex=%d", ConfResult, ConfIndex);
+	if (ConfResult == CONF_NOT)
+	{
+		ConfResult = ConfigPartCreate(ID_CONF_LORA_PARAM, 256); // Если не получилось то создаем
+		SYSLOG_I("CreateConf. ConfResult=%d", ConfResult, ConfIndex);
+		ConfResult = ConfigPartOpen(ID_CONF_LORA_PARAM, &ConfIndex); // Пытаемся открыть
+		SYSLOG_I("OpenConf. ConfResult=%d,ConfIndex=%d", ConfResult, ConfIndex);
+	}
+	if (ConfResult == CONF_OK)
+	{
+		ConfLen = ConfigPartRead(ConfIndex, sizeof(sLoRaWanParamsConf), &LoRaWanParamsConf);
+		if (ConfLen != sizeof(sLoRaWanParamsConf))
+		{
+			ConfigPartWrite(ConfIndex, sizeof(sLoRaWanParamsConf), &LoRaWanParamsConf);
+			ConfigPartRead(ConfIndex, sizeof(sLoRaWanParamsConf), &LoRaWanParamsConf);
+		}
+	}
+	LmHandlerParams.Region = LoRaWanParamsConf.Region;
+	LmHandlerParams.AdrEnable = LoRaWanParamsConf.AdrEnable;
+	LmHandlerParams.TxDatarate = LoRaWanParamsConf.TxDatarate;
+	LmHandlerParams.PublicNetworkEnable = LoRaWanParamsConf.PublicNetworkEnable;
+	LmHandlerParams.DutyCycleEnabled = LoRaWanParamsConf.DutyCycleEnabled;
+	LmHandlerParams.IsOtaaActivation = LoRaWanParamsConf.Otaa;
+
+
     if ( LmHandlerInit( &LmHandlerCallbacks, &LmHandlerParams ) != LORAMAC_HANDLER_SUCCESS )
     {
         SYSLOG_E( "LoRaMac wasn't properly initialized" );
@@ -312,74 +354,6 @@ bool LoRaWanSend( uint8_t Port, size_t Size, uint8_t *Data )
     }
     return true;
 }
-/*	FILE_LOADER_INFO Info;
-	FILE_LOADER_STAT Stat;
-
-    LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
-
-    if( LmHandlerIsBusy( ) == true )
-    {
-        return;
-    }
-
-    uint8_t isPending = 0;
-    CRITICAL_SECTION_BEGIN( );
-    isPending = IsTxFramePending;
-    IsTxFramePending = 0;
-    CRITICAL_SECTION_END( );
-    if( isPending == 1 )
-    {
-        if( IsMcSessionStarted == false )
-        {
-        	Stat = FileLoaderGetStat(&Info);
-            if(( Stat != FILE_LOADER_SUCCESS ) && ( Stat != FILE_LOADER_FAIL))
-            {
-                if( IsClockSynched == false )
-                {
-                    status = LmhpClockSyncAppTimeReq( );
-                }
-                else
-                {
-                	LoRaWanDataBuffer[0] = randr( 0, 255 );
-                	LoRaWanDataBuffer[1] = randr( 0, 255 );
-                	LoRaWanDataBuffer[2] = randr( 0, 255 );
-                	LoRaWanDataBuffer[3] = randr( 0, 255 );
-                    // Send random packet
-                    LmHandlerAppData_t appData =
-                    {
-                        .Buffer = LoRaWanDataBuffer,
-                        .BufferSize = 4,
-                        .Port = 3,
-                    };
-                    status = LmHandlerSend( &appData, LORAMAC_HANDLER_UNCONFIRMED_MSG );
-                }
-            }
-            else
-            {
-            	size_t pBuff = 0;
-            	SYSLOG_I("Load info send. Stat=%d, Size = %d", Stat, Info.Size);
-            	LoRaWanDataBuffer[pBuff++] = 0x05; // FragDataBlockAuthReq
-            	LoRaWanDataBuffer[pBuff++] = (uint8_t)(Stat);
-            	LoRaWanDataBuffer[pBuff++] = Info.Size & 0x000000FF;
-            	LoRaWanDataBuffer[pBuff++] = ( Info.Size >> 8 ) & 0x000000FF;
-            	LoRaWanDataBuffer[pBuff++] = ( Info.Size >> 16 ) & 0x000000FF;
-            	LoRaWanDataBuffer[pBuff++] = ( Info.Size >> 24 ) & 0x000000FF;
-                // Send FragAuthReq
-                LmHandlerAppData_t appData =
-                {
-                    .Buffer = LoRaWanDataBuffer,
-                    .BufferSize = pBuff,
-                    .Port = 201
-                };
-                status = LmHandlerSend( &appData, LORAMAC_HANDLER_UNCONFIRMED_MSG );
-            }
-            if( status == LORAMAC_HANDLER_SUCCESS )
-            {
-            	// TODO:
-            }
-        }
-    }
-}*/
 
 
 
