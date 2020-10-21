@@ -32,10 +32,17 @@ typedef struct _VER_STRUCT
 #ifdef BOOTLOADER
 #define BOOT_VER 	0,0,2
 #else
-#define APP_VER 	0,1,0
+#define APP_VER 	0,2,0
 #endif
 
+#ifdef IMPULSE_COUNTER
 #define DEV_ID 		1
+#endif
+
+
+#ifdef DECAST_WATER
+#define DEV_ID 		2
+#endif
 
 VER_RESULT VersionRead(uint32_t StartAddr, uint32_t SizePart, INFO_STRUCT *INFO);
 

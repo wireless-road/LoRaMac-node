@@ -14,19 +14,19 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="elf" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="fr.ac6.managedbuild.config.gnu.cross.exe.debug.2142799380" name="Debug" parent="fr.ac6.managedbuild.config.gnu.cross.exe.debug" postannouncebuildStep="Generating binary and Printing size information:" postbuildStep="arm-none-eabi-objcopy -O binary &quot;${BuildArtifactFileBaseName}.elf&quot; &quot;${BuildArtifactFileBaseName}.bin&quot;; arm-none-eabi-size &quot;${BuildArtifactFileName}&quot;;srec_cat ${BuildArtifactFileBaseName}.bin -binary -crop 0x0 0x5FFC -fill 0x00 0x0 0x5FFC -crc32-l-e 0x5FFC -o ${BuildArtifactFileBaseName}_crc.bin -binary">
+				<configuration artifactExtension="elf" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="fr.ac6.managedbuild.config.gnu.cross.exe.debug.2142799380" name="Debug" parent="fr.ac6.managedbuild.config.gnu.cross.exe.debug" postannouncebuildStep="Generating binary and Printing size information:" postbuildStep="arm-none-eabi-objcopy -O binary &quot;${BuildArtifactFileBaseName}.elf&quot; &quot;${BuildArtifactFileBaseName}.bin&quot;; arm-none-eabi-size &quot;${BuildArtifactFileName}&quot;;srec_cat ${BuildArtifactFileBaseName}.bin -binary -crop 0x0 0x19FFC -fill 0x00 0x0 0x19FFC -crc32-l-e 0x19FFC -o ${BuildArtifactFileBaseName}_crc.bin -binary">
 					<folderInfo id="fr.ac6.managedbuild.config.gnu.cross.exe.debug.2142799380." name="/" resourcePath="">
 						<toolChain id="fr.ac6.managedbuild.toolchain.gnu.cross.exe.debug.202160957" name="Ac6 STM32 MCU GCC" superClass="fr.ac6.managedbuild.toolchain.gnu.cross.exe.debug">
 							<option id="fr.ac6.managedbuild.option.gnu.cross.mcu.1207946795" name="Mcu" superClass="fr.ac6.managedbuild.option.gnu.cross.mcu" value="STM32L071CBTx" valueType="string"/>
 							<option id="fr.ac6.managedbuild.option.gnu.cross.board.2034006161" name="Board" superClass="fr.ac6.managedbuild.option.gnu.cross.board" value="genericBoard" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="fr.ac6.managedbuild.targetPlatform.gnu.cross.1318711095" isAbstract="false" osList="all" superClass="fr.ac6.managedbuild.targetPlatform.gnu.cross"/>
-							<builder buildPath="${workspace_loc:/m2m-76-impulse-counter-bootloader}/Debug" id="fr.ac6.managedbuild.builder.gnu.cross.113578506" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="fr.ac6.managedbuild.builder.gnu.cross"/>
+							<builder buildPath="${workspace_loc:/m2m-76-impulse-counter}/Debug" id="fr.ac6.managedbuild.builder.gnu.cross.113578506" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="fr.ac6.managedbuild.builder.gnu.cross"/>
 							<tool id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.1741423124" name="MCU GCC Compiler" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler">
 								<option id="fr.ac6.managedbuild.gnu.c.compiler.option.optimization.level.1945497296" name="Optimization Level" superClass="fr.ac6.managedbuild.gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" value="fr.ac6.managedbuild.gnu.c.optimization.level.debug" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.762593517" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1768390703" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="STM32"/>
-									<listOptionValue builtIn="false" value="IMPULSE_COUNTER"/>
+									<listOptionValue builtIn="false" value="DECAST_WATER"/>
 									<listOptionValue builtIn="false" value="STM32L0"/>
 									<listOptionValue builtIn="false" value="STM32L071CBTx"/>
 									<listOptionValue builtIn="false" value="DEBUG"/>
@@ -34,18 +34,16 @@
 									<listOptionValue builtIn="false" value="USE_FULL_LL_DRIVER"/>
 									<listOptionValue builtIn="false" value="USE_HAL_DRIVER"/>
 									<listOptionValue builtIn="false" value="REGION_EU868"/>
-									<listOptionValue builtIn="false" value="BOOTLOADER"/>
 								</option>
 								<option id="gnu.c.compiler.option.include.paths.52728338" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/m2m-76-impulse-counter/m2m-fuota/Disk}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/m2m-fuota/common}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/m2m-fuota/common/LmHandler}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/m2m-fuota/common/LmHandler/packages}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/m2m-fuota}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../common/LmHandler&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../common/LmHandler/packages&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../boards&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../boards/m2m-76-impulse-counter&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../boards/m2m-76-impulse-counter/cmsis&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../boards/${ProjName}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../boards/${ProjName}/cmsis&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../boards/mcu/stm32&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../boards/mcu/stm32/cmsis&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../boards/mcu/stm32/STM32L0xx_HAL_Driver/Inc&quot;"/>
@@ -59,8 +57,10 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../lora-protobuf/generator&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../system&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../../system/crypto&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/m2m-fuota/Disk}&quot;"/>
 								</option>
-								<option id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.ffunction.487412456" name="Place the function in their own section (-ffunction-sections)" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.ffunction" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+								<option id="gnu.c.compiler.option.dialect.std.1966467239" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.optimization.flags.1120734614" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" useByScannerDiscovery="false" value="" valueType="string"/>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.c.221208586" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.c"/>
 								<inputType id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.s.490785228" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.s"/>
 							</tool>
@@ -84,7 +84,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="m2m-fuota/main.c|boards/DecastWater|m2m-fuota/LoRaWan.c|m2m-fuota/Servises.c|m2m-fuota/FileLoader.c|m2m-fuota/UpdateTask.c|radio|common|mac|peripherals|radio/sx1272|radio/sx126x|peripherals/sx9500.c|peripherals/sx1509.c|peripherals/pam7q.c|peripherals/mpl3115.c|peripherals/mma8451.c|peripherals/mag3110.c|common/LmHandlerMsgDisplay.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_utils.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_tim.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_rtc.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_rng.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_pwr.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_lpuart.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_i2c.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_exti.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_dma.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_dac.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_crs.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_crc.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_comp.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_adc.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_tsc.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_smbus.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_smartcard_ex.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_rng.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pcd.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pcd_ex.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_msp_template.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_lptim.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_lcd.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_iwdg.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_irda.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_firewall.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_dac.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_dac_ex.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_cryp.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_cryp_ex.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_crc.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_crc_ex.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_comp.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_comp_ex.c|boards/mcu/stm32/STM32L4xx_HAL_Driver|boards/mcu/stm32/STM32L1xx_HAL_Driver|boards/mcu/stm32/STM32_USB_Device_Library|boards/mcu/stm32/EEPROM_Emul|boards/m2m-76-impulse-counter/sx1276mb1mas-board.c|boards/m2m-76-impulse-counter/sx1272mb2das-board.c|boards/m2m-76-impulse-counter/sx1262mbxdas-board.c|boards/m2m-76-impulse-counter/sx1262mbxcas-board.c|boards/m2m-76-impulse-counter/sx1261mbxbas-board.c|boards/m2m-76-impulse-counter/i2c-board.c|boards/m2m-76-impulse-counter/cmsis/arm-std|boards/m2m-76-impulse-counter/cmsis/arm-gcc|boards/mcu/saml21|boards/SKiM980A|boards/SKiM881AXL|boards/SKiM880B|boards/SAML21|boards/NucleoL476|boards/NucleoL152|boards/NucleoL073_dev|boards/NucleoL073|boards/NAMote72|boards/m2m-76-water-meter-Rev3|boards/m2m-76-water-meter|boards/m2m-76-gps|boards/m2m-76-electricity-meter|boards/B-L072Z-LRWAN1|inc|src|startup" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="m2m-fuota/boot_main.c|boards/DecastWater/sx1276mb1mas-board.c|boards/DecastWater/sx1272mb2das-board.c|boards/DecastWater/sx1262mbxdas-board.c|boards/DecastWater/sx1262mbxcas-board.c|boards/DecastWater/sx1261mbxbas-board.c|boards/DecastWater/i2c-board.c|boards/DecastWater/cmsis/arm-std|boards/DecastWater/cmsis/arm-gcc|boards/m2m-76-impulse-counter|m2m-fuota/common/LmHandlerMsgDisplay.c|radio/lr1110|common|radio/sx1272|radio/sx126x|peripherals/sx9500.c|peripherals/sx1509.c|peripherals/pam7q.c|peripherals/mpl3115.c|peripherals/mma8451.c|peripherals/mag3110.c|common/LmHandlerMsgDisplay.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_utils.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_tim.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_rtc.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_rng.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_pwr.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_lpuart.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_i2c.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_exti.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_dma.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_dac.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_crs.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_crc.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_comp.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_adc.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_tsc.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_smbus.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_smartcard_ex.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_rng.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pcd.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pcd_ex.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_msp_template.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_lptim.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_lcd.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_iwdg.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_irda.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_firewall.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_dac.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_dac_ex.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_cryp.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_cryp_ex.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_crc.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_crc_ex.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_comp.c|boards/mcu/stm32/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_comp_ex.c|boards/mcu/stm32/STM32L4xx_HAL_Driver|boards/mcu/stm32/STM32L1xx_HAL_Driver|boards/mcu/stm32/STM32_USB_Device_Library|boards/mcu/stm32/EEPROM_Emul|boards/m2m-76-impulse-counter/sx1276mb1mas-board.c|boards/m2m-76-impulse-counter/sx1272mb2das-board.c|boards/m2m-76-impulse-counter/sx1262mbxdas-board.c|boards/m2m-76-impulse-counter/sx1262mbxcas-board.c|boards/m2m-76-impulse-counter/sx1261mbxbas-board.c|boards/m2m-76-impulse-counter/i2c-board.c|boards/m2m-76-impulse-counter/cmsis/arm-std|boards/m2m-76-impulse-counter/cmsis/arm-gcc|boards/mcu/saml21|boards/SKiM980A|boards/SKiM881AXL|boards/SKiM880B|boards/SAML21|boards/NucleoL476|boards/NucleoL152|boards/NucleoL073_dev|boards/NucleoL073|boards/NAMote72|boards/m2m-76-water-meter-Rev3|boards/m2m-76-water-meter|boards/m2m-76-gps|boards/m2m-76-electricity-meter|boards/B-L072Z-LRWAN1|inc|src|startup" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="inc"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="startup"/>
 					</sourceEntries>
@@ -111,7 +111,7 @@
 							<option id="fr.ac6.managedbuild.option.gnu.cross.mcu.1839800288" name="Mcu" superClass="fr.ac6.managedbuild.option.gnu.cross.mcu" value="STM32L071CBTx" valueType="string"/>
 							<option id="fr.ac6.managedbuild.option.gnu.cross.board.1946553736" name="Board" superClass="fr.ac6.managedbuild.option.gnu.cross.board" value="genericBoard" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="fr.ac6.managedbuild.targetPlatform.gnu.cross.1100236308" isAbstract="false" osList="all" superClass="fr.ac6.managedbuild.targetPlatform.gnu.cross"/>
-							<builder buildPath="${workspace_loc:/m2m-76-impulse-counter-bootloader}/Release" id="fr.ac6.managedbuild.builder.gnu.cross.752828458" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="fr.ac6.managedbuild.builder.gnu.cross"/>
+							<builder buildPath="${workspace_loc:/m2m-76-impulse-counter}/Release" id="fr.ac6.managedbuild.builder.gnu.cross.752828458" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="fr.ac6.managedbuild.builder.gnu.cross"/>
 							<tool id="fr.ac6.managedbuild.tool.gnu.cross.c.compiler.9074402" name="MCU GCC Compiler" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.compiler">
 								<option id="fr.ac6.managedbuild.gnu.c.compiler.option.optimization.level.1290120515" name="Optimization Level" superClass="fr.ac6.managedbuild.gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" value="fr.ac6.managedbuild.gnu.c.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.1016392749" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.none" valueType="enumerated"/>
@@ -143,6 +143,7 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="inc"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="peripherals"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="startup"/>
 					</sourceEntries>
 				</configuration>
@@ -151,7 +152,7 @@
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<project id="m2m-76-impulse-counter-bootloader.fr.ac6.managedbuild.target.gnu.cross.exe.848157037" name="Executable" projectType="fr.ac6.managedbuild.target.gnu.cross.exe"/>
+		<project id="m2m-76-impulse-counter.fr.ac6.managedbuild.target.gnu.cross.exe.848157037" name="Executable" projectType="fr.ac6.managedbuild.target.gnu.cross.exe"/>
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
@@ -167,10 +168,10 @@
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
 		<configuration configurationName="Debug">
-			<resource resourceType="PROJECT" workspacePath="/m2m-76-impulse-counter-bootloader"/>
+			<resource resourceType="PROJECT" workspacePath="/m2m-76-impulse-counter"/>
 		</configuration>
 		<configuration configurationName="Release">
-			<resource resourceType="PROJECT" workspacePath="/m2m-76-impulse-counter-bootloader"/>
+			<resource resourceType="PROJECT" workspacePath="/m2m-76-impulse-counter"/>
 		</configuration>
 	</storageModule>
 </cproject>
