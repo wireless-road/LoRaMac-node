@@ -78,6 +78,7 @@ const struct Radio_s Radio =
  * Antenna switch GPIO pins objects
  */
 Gpio_t AntSwitch;
+Gpio_t RfEnable;
 
 /*!
  * Debug GPIO pins objects
@@ -89,6 +90,8 @@ Gpio_t DbgPinRx;
 
 void SX1276IoInit( void )
 {
+	GpioInit( &RfEnable, RF_ENABLE, PIN_OUTPUT, PIN_PUSH_PULL, PIN_PULL_UP, 1 );
+
     GpioInit( &SX1276.Spi.Nss, RADIO_NSS, PIN_OUTPUT, PIN_PUSH_PULL, PIN_PULL_UP, 1 );
 
     GpioInit( &SX1276.DIO0, RADIO_DIO_0, PIN_INPUT, PIN_PUSH_PULL, PIN_PULL_UP, 0 );

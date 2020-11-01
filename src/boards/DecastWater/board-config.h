@@ -97,13 +97,16 @@
 #define RADIO_DIO_4                                 PB_3
 #define RADIO_DIO_5                                 PA_12
 
+#define RF_ENABLE									PC_13
+
+
 #define RADIO_ANT_SWITCH                            NC//PB_10
 
 #define LED_1                                       NC//PB_8
 #define LED_2                                       NC
 
-#define FLASH_DISK_NSS								PA_3
-#define FLASH_DISK_POWER							PB_10
+#define FLASH_DISK_NSS								PA_8
+#define FLASH_DISK_POWER							PA_9
 
 // Debug pins definition.
 #define RADIO_DBG_PIN_TX                            NC//PB_14
