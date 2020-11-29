@@ -278,7 +278,7 @@ void LoRaWanInit(void)
 			ConfigPartRead(ConfIndex, sizeof(sLoRaWanParamsConf), &LoRaWanParamsConf);
 		}
 	}
-	LmHandlerParams.Region = LoRaWanParamsConf.Region;
+	LmHandlerParams.Region = LORAWAN_DEFAULT_REGION;//LoRaWanParamsConf.Region;
 	LmHandlerParams.AdrEnable = LoRaWanParamsConf.AdrEnable;
 	LmHandlerParams.TxDatarate = LoRaWanParamsConf.TxDatarate;
 	LmHandlerParams.PublicNetworkEnable = LoRaWanParamsConf.PublicNetworkEnable;

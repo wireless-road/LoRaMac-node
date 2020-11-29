@@ -19,7 +19,7 @@
 // Pre-processor Definitions
 //******************************************************************************
 
-#define LORAWAN_DEFAULT_REGION LORAMAC_REGION_EU868
+#define LORAWAN_DEFAULT_REGION LORAMAC_REGION_RU864//LORAMAC_REGION_EU868
 
 /*!
  * LoRaWAN default end-device class

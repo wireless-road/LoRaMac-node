@@ -468,50 +468,6 @@ void BoardLowPowerHandler( void )
     __enable_irq( );
 }
 
-#if !defined ( __CC_ARM )
-#ifndef PRODUCTION
-/*
- * Function to be used by stdout for printf etc
- */
-int _write( int fd, const void *buf, size_t count )
-{
-    for(uint32_t i=0; i<count; i++) {
-    	USART2_sendChar(*(uint8_t*)buf++);
-    }
-    return count;
-}
-
-/*
- * Function to be used by stdin for scanf etc
- */
-int _read( int fd, const void *buf, size_t count )
-{
-    size_t bytesRead = 0;
-//    while( UartGetBuffer( &Uart1, ( uint8_t* )buf, count, ( uint16_t* )&bytesRead ) != 0 ){ };
-    // Echo back the character
-//    while( UartPutBuffer( &Uart1, ( uint8_t* )buf, ( uint16_t )bytesRead ) != 0 ){ };
-    return bytesRead;
-}
-#endif
-#else
-
-// Keil compiler
-int fputc( int c, FILE *stream )
-{
-    while( UartPutChar( &Uart1, ( uint8_t )c ) != 0 );
-    return c;
-}
-
-int fgetc( FILE *stream )
-{
-    uint8_t c = 0;
-    while( UartGetChar( &Uart1, &c ) != 0 );
-    // Echo back the character
-    while( UartPutChar( &Uart1, c ) != 0 );
-    return ( int )c;
-}
-
-#endif
 
 #ifdef USE_FULL_ASSERT
 /*

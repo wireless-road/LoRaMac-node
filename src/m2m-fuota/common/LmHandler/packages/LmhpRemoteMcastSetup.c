@@ -430,7 +430,7 @@ static void LmhpRemoteMcastSetupOnMcpsIndication( McpsIndication_t *mcpsIndicati
 
         DBG( "ID          : %d\n", McSessionData[0].McGroupData.IdHeader.Fields.McGroupId );
         DBG( "McAddr      : %08lX\n", McSessionData[0].McGroupData.McAddr );
-        SYSDUMP_D("McKey:", &McSessionData[0].McGroupData.McKeyEncrypted,16 );
+        DBG("McKey:", &McSessionData[0].McGroupData.McKeyEncrypted,16 );
         DBG( "McFCountMin : %lu\n",  McSessionData[0].McGroupData.McFCountMin );
         DBG( "McFCountMax : %lu\n",  McSessionData[0].McGroupData.McFCountMax );
         DBG( "SessionTime : %lu\n",  McSessionData[0].SessionTime );

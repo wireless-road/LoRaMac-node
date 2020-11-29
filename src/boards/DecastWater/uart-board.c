@@ -66,39 +66,7 @@ void UartMcuInit( Uart_t *obj, UartId_t uartId, PinNames tx, PinNames rx )
 
 //#include <nmea_gps.h>
 
-void Board_LL_Usart2_Init(void)
-{
-	LL_GPIO_InitTypeDef GPIO_InitStruct;
-
-	LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
-
-	// Peripheral clock enable
-	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2);
-	LL_GPIO_StructInit(&GPIO_InitStruct);
-
-	//USART1 GPIO Configuration
-	GPIO_InitStruct.Pin = LL_GPIO_PIN_2;
-	GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
-	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-	GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-	GPIO_InitStruct.Alternate = LL_GPIO_AF_4;
-	LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-	GPIO_InitStruct.Pin = LL_GPIO_PIN_3;
-	GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
-	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-	GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  	GPIO_InitStruct.Alternate = LL_GPIO_AF_4;
-  	LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  	Board_LL_Usart2_Config();
-
-}
-
-
-void Board_LL_Usart2_Config(void)
+static void Board_LL_Usart2_Config(void)
 {
 	LL_USART_InitTypeDef USART_InitStruct;
 
@@ -139,6 +107,40 @@ void Board_LL_Usart2_Config(void)
 	LL_USART_Enable(USART2);
 	//*/
 }
+
+void Board_LL_Usart2_Init(void)
+{
+	LL_GPIO_InitTypeDef GPIO_InitStruct;
+
+	LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
+
+	// Peripheral clock enable
+	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2);
+	LL_GPIO_StructInit(&GPIO_InitStruct);
+
+	//USART1 GPIO Configuration
+	GPIO_InitStruct.Pin = LL_GPIO_PIN_2;
+	GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+	GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+	GPIO_InitStruct.Alternate = LL_GPIO_AF_4;
+	LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin = LL_GPIO_PIN_3;
+	GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+	GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+  	GPIO_InitStruct.Alternate = LL_GPIO_AF_4;
+  	LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  	Board_LL_Usart2_Config();
+
+}
+
+
+
 
 void USART2_sendChar(uint8_t data)
 {
